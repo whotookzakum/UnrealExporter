@@ -3,9 +3,8 @@ using CUE4Parse.Encryption.Aes;
 using CUE4Parse.FileProvider;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Versions;
-using NSJson = Newtonsoft.Json;
-using System.Text.Json;
-using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+// using System.Text.Json;
 using System.Globalization;
 
 try
@@ -14,7 +13,7 @@ try
     var totalFiles = 0;
 
     string jsonString = File.ReadAllText("config.json");
-    List<ConfigObj> configs = JsonSerializer.Deserialize<List<ConfigObj>>(jsonString);
+    List<ConfigObj> configs = JsonConvert.DeserializeObject<List<ConfigObj>>(jsonString);
 
     foreach (ConfigObj config in configs)
     {
@@ -86,7 +85,7 @@ try
                     var allObjects = provider.LoadAllObjects(file.Value.Path);
                     Directory.CreateDirectory(outputDir);
                     Console.WriteLine("=> " + fullFilePath);
-                    var json = NSJson.JsonConvert.SerializeObject(allObjects, NSJson.Formatting.Indented);
+                    var json = JsonConvert.SerializeObject(allObjects, Formatting.Indented);
                     File.WriteAllText(fullFilePath, json);
                 }
                 catch (AggregateException)
@@ -123,7 +122,7 @@ static string elapsed(double start, double end, int factor = 1)
     return ((end - start) / factor).ToString("0.00");
 }
 
-class ConfigObj
+public class ConfigObj
 {
     public string paksDir { get; set; }
     public string outputDir { get; set; }

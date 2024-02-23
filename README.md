@@ -8,9 +8,10 @@ Feel free to customize the code however you want. The repo will be published for
 - [x] Multiple game support
 - [ ] CLI args support
 - [ ] Patch .pak reconciliation
+- [ ] Files other than .uasset
 
 ## How to use
-1. Download latest release
+1. Download latest [release](https://github.com/whotookzakum/UnrealExporter/releases)
 2. Configure `config.json` based on the game. By adding multiple objects, you can point to different games at the same time.
 
 | Key | Type | Description |
@@ -23,15 +24,8 @@ Feel free to customize the code however you want. The repo will be published for
 | targetFilePaths        | `Array(string)` | A list of files that should be exported. Supports regex. |
 | excludedFilePaths      | `Array(string)` | A list of files that should be skipped, useful for avoiding files that crash CUE4Parse. Supports regex. |
 
-
-**For customization**, you might want to add args for the game client path and export output path for use as a CLI. Or maybe add timers for each every iteration of the loop to see how long each file takes. Or you might want to add some custom logic to differentiate and include patch .pak files (ends in _P.pak). Or you might want to add support for exporting other file types supported by CUE4Parse.
-
-**Any UE files that would crash FModel (which also uses CUE4Parse) will also crash this program.**  
-Maybe implement an `ExclusionsList.txt`?
-
 ### Building
-If you wish to build the project yourself, there are only a few extra steps.
+If you wish to build the project yourself clone the repo and follow the steps below.
 1. Download .NET SDK 8.0
-2. Clone the repo
-3. Configure `config.json`
-4. Run `dotnet run`
+2. Configure `config.json`
+3. Run `dotnet run` to test, or `dotnet publish -c Release --self-contained true -p:PublishSingleFile=true -p:DebugType=None -p:DebugSymbols=false` to publish to a binary.

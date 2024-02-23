@@ -5,17 +5,7 @@
         "outputDir": "./output",
         "aes": "0x6E6B325B02B821BD46AF6B62B1E929DC89957DC6F8AA78210D5316798B7508F8",
         "keepDirectoryStructure": false,
-        "targetFilePaths": [
-            "Hotta/Content/Resources/CoreBlueprints/DataTable/.*/.*\\.uasset",
-            "Hotta/Content/Resources/CoreBlueprints/DataTable/.*\\.uasset",
-            "Hotta/Content/Resources/CoreBlueprints/DataTable/Skill/.*\\.uasset",
-            "Hotta/Content/Resources/CoreBlueprints/DataTable/Skill/.*/.*\\.uasset",
-            "Hotta/Content/Resources/Dialogues/Quests/.*\\.uasset",
-            "Hotta/Content/Resources/Text/.*\\.uasset",
-            "Hotta/Content/Resources/CoreBlueprints/DataTable/.*\\.uasset",
-            "Hotta/Content/Resources/CoreBlueprints/DataTable_Balance/.*.uasset",
-            "Hotta/Content/Resources/CoreBlueprints/DataTable_Balance/.*/.*.uasset"
-        ],
+        "targetFilePaths": ["Hotta/Content/Resources/CoreBlueprints/DataTable/Skill/..*/.*\\.uasset"],
         "excludedPaths": []
     }
 ]
