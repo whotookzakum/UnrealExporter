@@ -4,10 +4,10 @@ using CUE4Parse.FileProvider;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Versions;
 using Newtonsoft.Json;
-// using System.Text.Json;
 using System.Globalization;
 using CUE4Parse.UE4.Localization;
 using CUE4Parse.Utils;
+using CUE4Parse.UE4.Assets.Exports.Texture;
 
 try
 {
@@ -47,15 +47,27 @@ try
         Console.WriteLine($"Output: {config.outputDir}");
         Console.WriteLine($"AES key: {config.aes}");
         Console.WriteLine($"Keep directory structure: {config.keepDirectoryStructure}");
+        Console.WriteLine($"Locale: {config.lang}");
 
         // Load CUE4Parse
         var provider = new DefaultFileProvider(config.paksDir, SearchOption.TopDirectoryOnly, true, new VersionContainer(selectedVersion));
         provider.Initialize();
 
         // Decrypt if AES key is provided
-        if (config.aes.Length > 0)
+        if (config.aes?.Length > 0)
         {
             provider.SubmitKey(new FGuid(), new FAesKey(config.aes));
+        }
+
+        // Set locale if provided, otherwise English
+        if (config.lang?.Length > 0)
+        {
+            ELanguage selectedLang = (ELanguage)Enum.Parse(typeof(ELanguage), config.lang);
+            provider.LoadLocalization(selectedLang);
+        }
+        else
+        {
+            provider.LoadLocalization(ELanguage.English);
         }
 
         // Loop through all files and export the ones that match any of the targetFilePaths (converted to regex)
@@ -92,6 +104,22 @@ try
 
                     switch (fileExtension)
                     {
+                        case "uasset":
+                        case "umap":
+                            {
+                                // Load all objects in the .uasset/.umap file, serialize to JSON, then write to file
+                                var allObjects = provider.LoadAllObjects(file.Value.Path);
+
+                                // if (provider.TrySaveAsset(file.Value.Path, out var texture))
+                                // {
+                                //     // Decode is used for Objects,
+                                //     var bitmap = texture.Decode(ETexturePlatform.DesktopMobile);
+                                // }
+
+                                var json = JsonConvert.SerializeObject(allObjects, Formatting.Indented);
+                                File.WriteAllText(fullFilePath, json);
+                                break;
+                            }
                         case "locres":
                             {
                                 if (provider.TryCreateReader(file.Value.Path, out var archive))
@@ -103,15 +131,7 @@ try
                                 }
                                 break;
                             }
-                        case "uasset":
-                        case "umap":
-                            {
-                                // Load all objects in the .uasset/.umap file, serialize to JSON, then write to file
-                                var allObjects = provider.LoadAllObjects(file.Value.Path);
-                                var json = JsonConvert.SerializeObject(allObjects, Formatting.Indented);
-                                File.WriteAllText(fullFilePath, json);
-                                break;
-                            }
+
                     }
                 }
                 catch (AggregateException)
@@ -155,6 +175,7 @@ public class ConfigObj
     public string outputDir { get; set; }
     public string aes { get; set; }
     public bool keepDirectoryStructure { get; set; }
+    public string lang { get; set; }
     public List<string> targetFilePaths { get; set; }
     public List<string> excludedPaths { get; set; }
 }
