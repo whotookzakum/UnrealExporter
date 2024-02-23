@@ -3,78 +3,124 @@ using CUE4Parse.Encryption.Aes;
 using CUE4Parse.FileProvider;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Versions;
-// using Newtonsoft.Json;
+using NSJson = Newtonsoft.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using System.Globalization;
 
-
-
-// Load .env file
-// var root = Directory.GetCurrentDirectory();
-// var dotenv = Path.Combine(root, ".env");
-// DotEnv.Load(dotenv);
-// var config = new ConfigurationBuilder().AddEnvironmentVariables().Build();
-
-
 try
 {
-    // Read the JSON file into a string
-    string jsonString = File.ReadAllText("config.json");
+    double start = now();
+    var totalFiles = 0;
 
-    // Deserialize the JSON array into a list of objects
+    string jsonString = File.ReadAllText("config.json");
     List<ConfigObj> configs = JsonSerializer.Deserialize<List<ConfigObj>>(jsonString);
 
-    // Loop through each person and print their details
     foreach (ConfigObj config in configs)
     {
-        var provider = new DefaultFileProvider(config.paksDir, SearchOption.TopDirectoryOnly, true, new VersionContainer(EGame.GAME_UE4_27));
-        // Console.WriteLine(provider);
-        // Console.WriteLine(EGame.GAME_UE4_27);
 
+        // Get game version from config
         string version = "";
 
+        // "4.27"
         if (config.version.Contains("."))
         {
             version = $"UE{config.version.Replace('.', '_')}";
         }
+        // "tower of fantasy"
         else if (config.version.Split(" ").Length > 1)
         {
-            // Creates a TextInfo based on the "en-US" culture.
-            // https://stackoverflow.com/questions/913090/how-to-capitalize-the-first-character-of-each-word-or-the-first-character-of-a
             TextInfo textInfo = new CultureInfo("en-US", false).TextInfo;
             version = textInfo.ToTitleCase(config.version).Replace(" ", "");
         }
-        else {
+        // "TowerOfFantasy"
+        else
+        {
             version = config.version;
         }
 
-        // Parse the user input into the EGame enum
         EGame selectedVersion = (EGame)Enum.Parse(typeof(EGame), $"GAME_{version}");
 
-        // Output the selected version
         Console.WriteLine($"Version: {selectedVersion}");
         Console.WriteLine($"Paks: {config.paksDir}");
         Console.WriteLine($"Output: {config.outputDir}");
         Console.WriteLine($"AES key: {config.aes}");
         Console.WriteLine($"Keep directory structure: {config.keepDirectoryStructure}");
-        Console.WriteLine();
 
+        // Load CUE4Parse
+        var provider = new DefaultFileProvider(config.paksDir, SearchOption.TopDirectoryOnly, true, new VersionContainer(selectedVersion));
+        provider.Initialize();
 
-        foreach (string path in config.targetFilePaths)
+        // Decrypt if AES key is provided
+        if (config.aes.Length > 0)
         {
-            // new Regex("^" + regex + "$", RegexOptions.IgnoreCase)
-            // Console.WriteLine(path);
+            provider.SubmitKey(new FGuid(), new FAesKey(config.aes));
         }
+
+        // Loop through all files and export the ones that match any of the targetFilePaths (converted to regex)
+        foreach (var file in provider.Files)
+        {
+            if (config.targetFilePaths.Any(path => new Regex("^" + path + "$", RegexOptions.IgnoreCase).IsMatch(file.Value.Path)))
+            {
+                var outputDir = Path.GetFullPath(config.outputDir);
+
+                if (config.keepDirectoryStructure == true)
+                {
+                    outputDir =
+                        Path.GetFullPath(config.outputDir)
+                        + Path.DirectorySeparatorChar
+                        + Path.GetDirectoryName(file.Value.Path);
+                }
+
+                var fileName =
+                    Path.GetFileNameWithoutExtension(file.Value.Path)
+                    + ".json";
+                var fullFilePath =
+                    outputDir
+                    + Path.DirectorySeparatorChar
+                    + fileName;
+
+                try
+                {
+                    // Load all objects in the .uasset/.umap file, serialize to JSON, then write to file
+                    var allObjects = provider.LoadAllObjects(file.Value.Path);
+                    Directory.CreateDirectory(outputDir);
+                    Console.WriteLine("=> " + fullFilePath);
+                    var json = NSJson.JsonConvert.SerializeObject(allObjects, NSJson.Formatting.Indented);
+                    File.WriteAllText(fullFilePath, json);
+                }
+                catch (AggregateException)
+                {
+                    var filePathAndName = Path.GetDirectoryName(file.Value.Path) + Path.DirectorySeparatorChar + fileName;
+                    Console.WriteLine($"File cannot be opened: {filePathAndName}. Try checking the UE version specified in config.json");
+                }
+
+                totalFiles++;
+            }
+        }
+
+        Console.WriteLine();
     }
+
+    Console.WriteLine("Exported " + totalFiles + " files in " + elapsed(start, now(), 1000) + "seconds");
 }
 catch (FileNotFoundException)
 {
-    Console.WriteLine("File not found.");
+    Console.WriteLine("config.json not found.");
 }
 catch (JsonException)
 {
-    Console.WriteLine("Invalid JSON format.");
+    Console.WriteLine("config.json is not a valid JSON format.");
+}
+
+static double now()
+{
+    return DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalMilliseconds;
+}
+
+static string elapsed(double start, double end, int factor = 1)
+{
+    return ((end - start) / factor).ToString("0.00");
 }
 
 class ConfigObj
@@ -87,59 +133,3 @@ class ConfigObj
     public string version { get; set; }
 
 }
-
-
-
-// var paksDir = config["PATH_TO_PAKS"] ?? "";
-// var outputDir = config["OUTPUT_DIR"] ?? ""; // Creates a folder "Content" at the specified location
-// var aesKey = config["AES_KEY"] ?? "";
-
-// var provider = new DefaultFileProvider(paksDir, SearchOption.TopDirectoryOnly, true, new VersionContainer(EGame.GAME_UE4_27));
-// provider.Initialize();
-// provider.SubmitKey(new FGuid(), new FAesKey(aesKey));
-
-// // provider.MountedVfs contains paths to .pak files; provider.Files contains individual file paths
-// // Also consider: provider.Files.Keys, provider.Files.Values, (file).Key, (file).Value
-
-// // Create a list of regexes based on ExportList.txt
-// var targetFilePaths = new List<Regex>();
-// foreach (var regex in File.ReadAllLines("ExportList.txt"))
-// {
-//     targetFilePaths.Add();
-//     Console.WriteLine(regex);
-// }
-
-
-// double start = now();
-// var totalFiles = 0;
-
-// // Loop through all files and export the ones that match any of the regexes in ExportList.txt
-// foreach (var file in provider.Files)
-// {
-//     if (targetFilePaths.Any(regex => regex.IsMatch(file.Value.Path)))
-//     {
-//         var filePath = (Path.GetFullPath(outputDir) + Path.GetDirectoryName(file.Value.Path)).Replace("BLUEPROTOCOL", "");
-//         var fileName = Path.GetFileNameWithoutExtension(file.Value.Path) + ".json";
-//         Directory.CreateDirectory(filePath);
-//         Console.WriteLine("=> " + filePath + Path.DirectorySeparatorChar + fileName);
-
-//         // Load all objects in the .uasset/.umap file, serialize to JSON, then write to file
-//         var allObjects = provider.LoadAllObjects(file.Value.Path);
-//         var json = JsonConvert.SerializeObject(allObjects, Formatting.Indented);
-//         File.WriteAllText(filePath + Path.DirectorySeparatorChar + fileName, json);
-
-//         totalFiles++;
-//     }
-// }
-
-// Console.WriteLine("Exported " + totalFiles + " files in " + elapsed(start, now(), 1000) + "seconds");
-
-// static double now()
-// {
-//     return DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalMilliseconds;
-// }
-
-// static string elapsed(double start, double end, int factor = 1)
-// {
-//     return ((end - start) / factor).ToString("0.00");
-// }

@@ -1,4 +1,5 @@
 /bin
 /obj
 /Content
+/output
 .env
