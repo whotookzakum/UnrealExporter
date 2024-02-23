@@ -59,7 +59,10 @@ try
         // Loop through all files and export the ones that match any of the targetFilePaths (converted to regex)
         foreach (var file in provider.Files)
         {
-            if (config.targetFilePaths.Any(path => new Regex("^" + path + "$", RegexOptions.IgnoreCase).IsMatch(file.Value.Path)))
+            bool isTargetPath = config.targetFilePaths.Any(path => new Regex("^" + path + "$", RegexOptions.IgnoreCase).IsMatch(file.Value.Path));
+            bool isExcludedPath = config.excludedPaths.Any(path => new Regex("^" + path + "$", RegexOptions.IgnoreCase).IsMatch(file.Value.Path));
+            
+            if (isTargetPath && !isExcludedPath)
             {
                 var outputDir = Path.GetFullPath(config.outputDir);
 
@@ -124,11 +127,11 @@ static string elapsed(double start, double end, int factor = 1)
 
 public class ConfigObj
 {
+    public string version { get; set; }
     public string paksDir { get; set; }
     public string outputDir { get; set; }
     public string aes { get; set; }
     public bool keepDirectoryStructure { get; set; }
     public List<string> targetFilePaths { get; set; }
-    public string version { get; set; }
-
+    public List<string> excludedPaths { get; set; }
 }

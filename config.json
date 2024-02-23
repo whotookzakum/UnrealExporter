@@ -4,8 +4,8 @@
         "paksDir": "C:/Program Files (x86)/Steam/steamapps/common/Tower of Fantasy/Tower of Fantasy/Hotta/Content/Paks",
         "outputDir": "./output",
         "aes": "0x6E6B325B02B821BD46AF6B62B1E929DC89957DC6F8AA78210D5316798B7508F8",
-        "keepDirectoryStructure": false,
+        "keepDirectoryStructure": true,
         "targetFilePaths": ["Hotta/Content/Resources/CoreBlueprints/DataTable/Skill/..*/.*\\.uasset"],
-        "excludedPaths": []
+        "excludedPaths": ["Hotta/Content/Resources/CoreBlueprints/DataTable/Skill/WeaponDes/UmbrellaDes.uasset"]
     }
 ]

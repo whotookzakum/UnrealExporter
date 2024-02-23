@@ -4,8 +4,9 @@ A batch file exporter for Unreal Engine games using [CUE4Parse](https://github.c
 Feel free to customize the code however you want. The repo will be published for reference, since CUE4Parse documentation is incomplete.  
 
 ## Features
-- [x] Customizable
 - [x] Multiple game support
+- [x] Regex paths for bulk exporting
+- [x] Path exclusions to avoid crashing
 - [ ] CLI args support
 - [ ] Patch .pak reconciliation
 - [ ] Files other than .uasset
@@ -16,13 +17,13 @@ Feel free to customize the code however you want. The repo will be published for
 
 | Key | Type | Description |
 |-----|-----------|-----------|
-| version                | `string`        | Unreal Engine version. [Supported versions](https://github.com/FabianFG/CUE4Parse/blob/master/CUE4Parse/UE4/Versions/EGame.cs). Accepts strings separated by one period, like "4.27", and game titles such as "TowerOfFantasy" or "tower of fantasy". |
+| version                | `string`        | Unreal Engine version. [Supported versions](https://github.com/FabianFG/CUE4Parse/blob/master/CUE4Parse/UE4/Versions/EGame.cs). Accepts strings separated by one period, like `"4.27"`, and supported game titles formatted camel-case or separated by spaces, such as `"TowerOfFantasy"` or `"tower of fantasy"`. |
 | paksDir                | `string`        | An __absolute path__ to the game directory containing the .pak file(s). |
 | outputDir              | `string`        | A __relative path__ to where you want to place the exported files. |
 | aes                    | `string`        | The AES-256 decryption key to access game files. Leave blank if not needed. |
 | keepDirectoryStructure | `bool`          | If set to `true`, folders will be made matching those found in the .paks. If set to `false`, all files will be output at the root level of the `outputDir`.     |
-| targetFilePaths        | `Array(string)` | A list of files that should be exported. Supports regex. |
-| excludedFilePaths      | `Array(string)` | A list of files that should be skipped, useful for avoiding files that crash CUE4Parse. Supports regex. |
+| targetFilePaths        | `Array(string)` | A list of files that should be exported. Supports regex. Note: the path's root resides **inside the game files**—use [FModel](https://github.com/4sval/FModel) or [UE Viewer](https://github.com/gildor2/UEViewer) to verify the paths you need—i.e. `Hotta/Content/...` for Tower of Fantasy. |
+| excludedFilePaths      | `Array(string)` | A list of files that should be skipped, useful for avoiding files that crash CUE4Parse. Supports regex. Note: the path's root resides **inside the game files**—use [FModel](https://github.com/4sval/FModel) or [UE Viewer](https://github.com/gildor2/UEViewer) to verify the paths you need—i.e. `Hotta/Content/...` for Tower of Fantasy.  |
 
 ### Building
 If you wish to build the project yourself clone the repo and follow the steps below.
