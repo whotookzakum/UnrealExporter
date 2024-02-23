@@ -1,0 +1,18 @@
+Paks Location: C:/BandaiNamcoLauncherGames/BLUEPROTOCOL/BLUEPROTOCOL/Content/Paks
+Output Location: Output
+AES Key: 
+
+
+BLUEPROTOCOL/Content/Text/.*\.uasset
+BLUEPROTOCOL/Content/Blueprints/Manager/DT_.*\.uasset
+BLUEPROTOCOL/Content/Blueprints/Manager/EnemySet/.*\.uasset
+BLUEPROTOCOL/Content/Blueprints/UI/Icon/DT_.*\.uasset
+BLUEPROTOCOL/Content/Blueprints/UI/LoadingScreen/LoadingTips.*\.uasset
+BLUEPROTOCOL/Content/Blueprints/UI/Map/DT_.*\.uasset
+BLUEPROTOCOL/Content/Blueprints/UI/Map/CDT_.*\.uasset
+BLUEPROTOCOL/Content/Maps/.*_EN\.umap
+BLUEPROTOCOL/Content/Maps/.*_PU\.umap
+BLUEPROTOCOL/Content/Maps/.*_SC\.umap
+BLUEPROTOCOL/Content/Maps/.*_Nappo\.umap
+BLUEPROTOCOL/Content/Maps/DT_.*\.uasset
+BLUEPROTOCOL/Content/Blueprints/Dungeon/Develop/.*\.uasset
