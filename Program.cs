@@ -6,6 +6,8 @@ using CUE4Parse.UE4.Versions;
 using Newtonsoft.Json;
 // using System.Text.Json;
 using System.Globalization;
+using CUE4Parse.UE4.Localization;
+using CUE4Parse.Utils;
 
 try
 {
@@ -61,7 +63,7 @@ try
         {
             bool isTargetPath = config.targetFilePaths.Any(path => new Regex("^" + path + "$", RegexOptions.IgnoreCase).IsMatch(file.Value.Path));
             bool isExcludedPath = config.excludedPaths.Any(path => new Regex("^" + path + "$", RegexOptions.IgnoreCase).IsMatch(file.Value.Path));
-            
+
             if (isTargetPath && !isExcludedPath)
             {
                 var outputDir = Path.GetFullPath(config.outputDir);
@@ -84,17 +86,38 @@ try
 
                 try
                 {
-                    // Load all objects in the .uasset/.umap file, serialize to JSON, then write to file
-                    var allObjects = provider.LoadAllObjects(file.Value.Path);
+                    var fileExtension = file.Value.Path.SubstringAfterLast('.').ToLower();
                     Directory.CreateDirectory(outputDir);
                     Console.WriteLine("=> " + fullFilePath);
-                    var json = JsonConvert.SerializeObject(allObjects, Formatting.Indented);
-                    File.WriteAllText(fullFilePath, json);
+
+                    switch (fileExtension)
+                    {
+                        case "locres":
+                            {
+                                if (provider.TryCreateReader(file.Value.Path, out var archive))
+                                {
+
+                                    var locres = new FTextLocalizationResource(archive);
+                                    var json = JsonConvert.SerializeObject(locres, Formatting.Indented);
+                                    File.WriteAllText(fullFilePath, json);
+                                }
+                                break;
+                            }
+                        case "uasset":
+                        case "umap":
+                            {
+                                // Load all objects in the .uasset/.umap file, serialize to JSON, then write to file
+                                var allObjects = provider.LoadAllObjects(file.Value.Path);
+                                var json = JsonConvert.SerializeObject(allObjects, Formatting.Indented);
+                                File.WriteAllText(fullFilePath, json);
+                                break;
+                            }
+                    }
                 }
                 catch (AggregateException)
                 {
                     var filePathAndName = Path.GetDirectoryName(file.Value.Path) + Path.DirectorySeparatorChar + fileName;
-                    Console.WriteLine($"File cannot be opened: {filePathAndName}. Try checking the UE version specified in config.json");
+                    Console.WriteLine($"File cannot be opened: {filePathAndName}. Possible issues include incorrect UE version in config.json, or this file type is not supported.");
                 }
 
                 totalFiles++;
