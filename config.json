@@ -7,11 +7,10 @@
         "keepDirectoryStructure": true,
         "lang": "English",
         "targetFilePaths": [
-            "Hotta/Content/Resources/CoreBlueprints/DataTable.*\\.uasset",
-            "Hotta/Content/Resources/Dialogues/Quests/.*\\.uasset",
-            "Hotta/Content/Resources/Text/.*\\.uasset",
-            "Hotta/Content/Localization/Game/.*\\.uasset",
-            "Hotta/Content/Resources/Abilities/Buff/Wormhole/NewBuff/.*\\.uasset"
+            
+        ],
+        "targetImagePaths": [
+            "Hotta/Content/Resources/UI/.*\\.uasset"
         ],
         "excludedPaths": [
             "Hotta/Content/Resources/CoreBlueprints/DataTable/ImitationElementEffectConfigDataTable.uasset",

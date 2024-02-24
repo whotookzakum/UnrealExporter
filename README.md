@@ -9,6 +9,7 @@ Feel free to customize the code however you want. The repo will be published for
 - [x] Path exclusions to avoid crashing
 - [ ] CLI args support
 - [ ] Patch .pak reconciliation
+- [ ] Log file
 
 ### Supported file types
 - [x] uasset
@@ -28,8 +29,8 @@ Feel free to customize the code however you want. The repo will be published for
 | aes                    | `string`        | The AES-256 decryption key to access game files. [Guide on how to obtain](https://github.com/Cracko298/UE4-AES-Key-Extracting-Guide). Leave blank if not needed. |
 | keepDirectoryStructure | `bool`          | If set to `true`, folders will be made matching those found in the .paks. If set to `false`, all files will be output at the root level of the `outputDir`.     |
 | lang                   | `string`        | Language that strings should be output in. [Supported languages](https://github.com/FabianFG/CUE4Parse/blob/master/CUE4Parse/UE4/Versions/ELanguage.cs). Useful for specifying the target language for localized resources. Will only work if the game supports the specified localization. Defaults to `English`. |
-| targetFilePaths        | `Array(string)` | A list of files that should be exported. Supports regex. Note: the path's root resides **inside the game files**—use [FModel](https://github.com/4sval/FModel) or [UE Viewer](https://github.com/gildor2/UEViewer) to verify the paths you need—i.e. `Hotta/Content/...` for Tower of Fantasy. |
-| excludedFilePaths      | `Array(string)` | A list of files that should be skipped, useful for avoiding files that crash CUE4Parse. Supports regex. Note: the path's root resides **inside the game files**—use [FModel](https://github.com/4sval/FModel) or [UE Viewer](https://github.com/gildor2/UEViewer) to verify the paths you need—i.e. `Hotta/Content/...` for Tower of Fantasy.  |
+| targetFilePaths        | `Array(string)` | A list of files that should be exported. Supports regex. Note: the path's root resides **inside the game files**—use [FModel](https://github.com/4sval/FModel) to verify the paths you need—i.e. `Hotta/Content/...` for Tower of Fantasy. |
+| excludedFilePaths      | `Array(string)` | A list of files that should be skipped, useful for avoiding files that crash CUE4Parse. Supports regex. Note: the path's root resides **inside the game files**—use [FModel](https://github.com/4sval/FModel) to verify the paths you need—i.e. `Hotta/Content/...` for Tower of Fantasy.  |
 
 ### Building
 If you wish to build the project yourself, download .NET SDK 8.0, clone the repo, and configure `config.json` in the root directory.

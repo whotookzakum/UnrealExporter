@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="CUE4Parse" Version="1.1.0" />
+    <PackageReference Include="CUE4Parse-Conversion" Version="1.1.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="8.0.0" />
   </ItemGroup>

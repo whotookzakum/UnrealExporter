@@ -1,13 +1,16 @@
-﻿using System.Text.RegularExpressions;
+﻿using Newtonsoft.Json;
+using System.Globalization;
+using System.Text.RegularExpressions;
 using CUE4Parse.Encryption.Aes;
 using CUE4Parse.FileProvider;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
-using System.Globalization;
 using CUE4Parse.UE4.Localization;
 using CUE4Parse.Utils;
 using CUE4Parse.UE4.Assets.Exports.Texture;
+using CUE4Parse_Conversion.Textures;
+using SkiaSharp;
+using CUE4Parse.UE4.Assets.Exports.Material;
 
 try
 {
@@ -75,59 +78,95 @@ try
         {
             bool isTargetPath = config.targetFilePaths.Any(path => new Regex("^" + path + "$", RegexOptions.IgnoreCase).IsMatch(file.Value.Path));
             bool isExcludedPath = config.excludedPaths.Any(path => new Regex("^" + path + "$", RegexOptions.IgnoreCase).IsMatch(file.Value.Path));
+            // bool isTargetImage = config.targetImagePaths.Any(path => new Regex("^" + path + "$", RegexOptions.IgnoreCase).IsMatch(file.Value.Path));
 
             if (isTargetPath && !isExcludedPath)
             {
-                var outputDir = Path.GetFullPath(config.outputDir);
+                // "Hotta/Content/Resources/UI/Activity/Activity/DT_Activityquest_Balance.uasset"
+                // file.Value.Path
 
-                if (config.keepDirectoryStructure == true)
-                {
-                    outputDir =
-                        Path.GetFullPath(config.outputDir)
-                        + Path.DirectorySeparatorChar
-                        + Path.GetDirectoryName(file.Value.Path);
-                }
+                // "Hotta\Content\Resources\UI\Activity\Activity"
+                var internalFilePath = Path.GetDirectoryName(file.Value.Path);
 
-                var fileName =
-                    Path.GetFileNameWithoutExtension(file.Value.Path)
-                    + ".json";
-                var fullFilePath =
-                    outputDir
-                    + Path.DirectorySeparatorChar
-                    + fileName;
+                // "D:\UnrealExporter\output\Hotta\Content\Resources\UI\Activity\Activity"
+                var outputDir = config.keepDirectoryStructure ?
+                    Path.GetFullPath(config.outputDir) + Path.DirectorySeparatorChar + internalFilePath
+                    : Path.GetFullPath(config.outputDir);
+
+                // "DT_Activityquest_Balance"
+                var fileName = Path.GetFileNameWithoutExtension(file.Value.Path);
+
+                // "D:\UnrealExporter\output\Hotta\Content\Resources\UI\Activity\Activity\DT_Activityquest_Balance"
+                var outputPath = outputDir + Path.DirectorySeparatorChar + fileName;
 
                 try
                 {
                     var fileExtension = file.Value.Path.SubstringAfterLast('.').ToLower();
-                    Directory.CreateDirectory(outputDir);
-                    Console.WriteLine("=> " + fullFilePath);
 
                     switch (fileExtension)
                     {
                         case "uasset":
                         case "umap":
                             {
-                                // Load all objects in the .uasset/.umap file, serialize to JSON, then write to file
+                                // Load all objects in the .uasset/.umap file
                                 var allObjects = provider.LoadAllObjects(file.Value.Path);
+                                bool isFileExported = false;
 
-                                // if (provider.TrySaveAsset(file.Value.Path, out var texture))
-                                // {
-                                //     // Decode is used for Objects,
-                                //     var bitmap = texture.Decode(ETexturePlatform.DesktopMobile);
-                                // }
+                                foreach (var obj in allObjects)
+                                {
+                                    // Only exports the first object
+                                    if (obj is UTexture2D texture)
+                                    {
+                                        var bitmap = texture.Decode(ETexturePlatform.DesktopMobile);
 
+                                        if (bitmap != null)
+                                        {
+                                            Console.WriteLine("=> " + outputPath + ".png");
+                                            if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
+
+                                            // Save the bitmap to a file
+                                            using (SKImage image = SKImage.FromBitmap(bitmap))
+                                            using (SKData data = image.Encode(SKEncodedImageFormat.Png, 100))
+                                            using (Stream stream = File.OpenWrite(outputPath + ".png"))
+                                            {
+                                                data.SaveTo(stream);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine($"ERROR: The following file is not a valid bitmap: {file.Value.Path}");
+                                        }
+
+                                        isFileExported = true;
+                                        break;
+                                    }
+                                    // Skip Materials that would be turned into .json..
+                                    else if (obj is UMaterialInstanceConstant)
+                                    {
+                                        isFileExported = true;
+                                        break;
+                                    }
+                                }
+
+                                if (isFileExported) break;
+
+                                Console.WriteLine("=> " + outputPath + ".json");
+
+                                // Serialize to JSON, then write to file
                                 var json = JsonConvert.SerializeObject(allObjects, Formatting.Indented);
-                                File.WriteAllText(fullFilePath, json);
+                                if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
+                                File.WriteAllText(outputPath + ".json", json);
+
                                 break;
                             }
                         case "locres":
                             {
                                 if (provider.TryCreateReader(file.Value.Path, out var archive))
                                 {
-
+                                    Console.WriteLine("=> " + outputPath + ".json");
                                     var locres = new FTextLocalizationResource(archive);
                                     var json = JsonConvert.SerializeObject(locres, Formatting.Indented);
-                                    File.WriteAllText(fullFilePath, json);
+                                    // File.WriteAllText(fullFilePath, json);
                                 }
                                 break;
                             }
@@ -177,5 +216,7 @@ public class ConfigObj
     public bool keepDirectoryStructure { get; set; }
     public string lang { get; set; }
     public List<string> targetFilePaths { get; set; }
+    // public List<string> targetImagePaths { get; set; }
+
     public List<string> excludedPaths { get; set; }
 }
