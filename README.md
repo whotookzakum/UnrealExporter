@@ -19,9 +19,37 @@ Feel free to customize the code however you want. The repo will be published for
 - [x] locres (to JSON)
 - [ ] everything else
 
-## How to use
+
+## Usage
+It's recommended that you clone the repo instead of downloading a release, so that you can quickly get the latest updates with `git pull`.
+
+### Download Release (NOT recommended)
+Simpler, but **not recommended** if you know how to use git.  
 1. Download latest [release](https://github.com/whotookzakum/UnrealExporter/releases)
-2. Configure `config.json` based on the game. By adding multiple objects, you can point to different games at the same time.
+2. Create and configure `config.json` (read Config Options below)
+3. Run `UnrealExporter.exe`
+
+### Manual Setup (recommended)
+More complex, but is the preferred method as you can quickly receive updates with `git pull`.  
+
+1. Download and install .NET SDK 8.0
+2. Clone the repo, i.e. `git clone https://github.com/whotookzakum/UnrealExporter`
+3. Create and configure `config.json` (read Config Options below)
+4. Open terminal and execute `dotnet run`
+
+#### Building
+If you wish to build the project yourself, follow the same steps as above (no need to run), and publish as a binary (.exe) with the following command:
+
+```sh
+dotnet publish -c Release --self-contained true -p:PublishSingleFile=true -p:DebugType=None -p:DebugSymbols=false
+```
+
+**Don't forget to paste config.json and any desired checkpoints into the folder that contains the binary.**
+
+### Config Options
+Create a `config.json` file in the root directory and configure it based on the game(s) you wish to export from. By adding multiple objects, you can point to different games at the same time.
+
+Example config files can be found in `/examples`. The excluded paths in the example configs are a non-exhaustive list of game files that are known to crash CUE4Parse.
 
 | Key | Type | Description |
 |-----|-----------|-----------|
@@ -49,62 +77,3 @@ A `.ckpt` file is a JSON that maps each file's path to its size, i.e. `"Hotta/Co
 If a valid checkpoint is provided, the program will only export files that have different file sizes than the one in the checkpoint (modified files), or do not have an entry in the checkpoint (new files).
 
 **Checkpoint files for all paks will be generated regardless of which files are exported.** In other words, you can export 0 files and still generate a full checkpoint. This can be useful if you want a checkpoint but don't want to re-export existing files.
-
-## Building
-If you wish to build the project yourself, download .NET SDK 8.0, clone the repo, and configure `config.json` in the root directory.
-
-To run:
-
-```sh
-dotnet run
-``` 
-
-To publish as a binary:
-
-```sh
-dotnet publish -c Release --self-contained true -p:PublishSingleFile=true -p:DebugType=None -p:DebugSymbols=false
-```
-
-**Don't forget to paste config.json and any desired checkpoints into the folder that contains the binary.**
-
-## Example configs
-Below are examples of config regexes on a per-game basis. The excluded paths are a non-exhaustive list of files that are known to crash CUE4Parse.
-
-### Tower of Fantasy
-```json
-[
-    {
-        "gameTitle": "Tower of Fantasy",
-        "version": "TowerOfFantasy",
-        "lang": "English",
-        "paksDir": "C:/Program Files (x86)/Steam/steamapps/common/Tower of Fantasy/Tower of Fantasy/Hotta/Content/Paks",
-        "outputDir": "./output",
-        "aes": "0x6E6B325B02B821BD46AF6B62B1E929DC89957DC6F8AA78210D5316798B7508F8",
-        "keepDirectoryStructure": true,
-        "includeJsonsInPngPaths": false,
-        "createCheckpoint": true,
-        "checkpointFile": "",
-        "exportJsonPaths": [
-            "Hotta/Content/Resources/CoreBlueprints/DataTable.*\\.uasset",
-            "Hotta/Content/Resources/Dialogues/Quests/.*\\.uasset",
-            "Hotta/Content/Resources/Text/.*\\.uasset",
-            "Hotta/Content/Localization/Game/.*\\.uasset",
-            "Hotta/Content/Resources/Abilities/Buff/Wormhole/NewBuff/.*\\.uasset"
-        ],
-        "exportPngPaths": [
-            "Hotta/Content/L10N/.*\\.uasset",
-            "Hotta/Content/ResourcesOverSea/.*\\.uasset",
-            "Hotta/Content/Resources/UI/.*\\.uasset",
-            "Hotta/Content/Resources/Icon/.*\\.uasset"
-        ],
-        "excludedPaths": [
-            "Hotta/Content/Resources/CoreBlueprints/DataTable/ImitationElementEffectConfigDataTable.uasset",
-            "Hotta/Content/Resources/CoreBlueprints/DataTable/ImitationChatNodeDataTable.uasset",
-            "Hotta/Content/Resources/CoreBlueprints/DataTable/DamageFloatiesTemplatePathData.uasset",
-            "Hotta/Content/Resources/CoreBlueprints/DataTable/PlayerAnimSequenceDataTable.uasset",
-            "Hotta/Content/Resources/CoreBlueprints/DataTable/TamingMonster/DA_TamingMonster.uasset",
-            "Hotta/Content/Resources/CoreBlueprints/DataTable/PlayerCommonMontageDataTable.uasset"
-        ]
-    }
-]
-```
