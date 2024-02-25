@@ -1,0 +1,17 @@
+[
+    {
+        "gameTitle": "",
+        "version": "",
+        "lang": "English",
+        "paksDir": "",
+        "outputDir": "./output",
+        "aes": "",
+        "keepDirectoryStructure": true,
+        "includeJsonsInPngPaths": false,
+        "createCheckpoint": true,
+        "checkpointFile": "",
+        "exportJsonPaths": [],
+        "exportPngPaths": [],
+        "excludedPaths": []
+    }
+]
