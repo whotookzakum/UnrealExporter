@@ -8,7 +8,7 @@
         "aes": "",
         "keepDirectoryStructure": true,
         "includeJsonsInPngPaths": false,
-        "createCheckpoint": true,
+        "createCheckpoint": false,
         "checkpointFile": "",
         "exportJsonPaths": [],
         "exportPngPaths": [],
