@@ -8,6 +8,7 @@ Feel free to customize the code however you want. The repo will be published for
 - [x] Regex paths for bulk exporting
 - [x] Path exclusions to avoid crashing
 - [x] Patch .pak reconciliation (courtesy of [MCMrARM](https://github.com/MCMrARM))
+- [ ] Version diffing
 - [ ] CLI args support
 - [ ] Log file
 - [ ] Automatic AES key finding
