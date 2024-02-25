@@ -56,6 +56,7 @@ try
         Console.WriteLine($"AES key: {config.aes}");
         Console.WriteLine($"Keep directory structure: {config.keepDirectoryStructure}");
         Console.WriteLine($"Include JSONs in PNG paths: {config.includeJsonsInPngPaths}");
+        Console.WriteLine($"Create checkpoint file: {config.createCheckpoint}");
 
         // Load CUE4Parse
         var provider = new DefaultFileProvider(config.paksDir, SearchOption.TopDirectoryOnly, true, new VersionContainer(selectedVersion));
@@ -82,23 +83,33 @@ try
         var patchProvider = new PatchFileProvider();
         patchProvider.Load(provider);
 
-        StringBuilder sb = new StringBuilder();
+        // Checkpoint setup
+        bool useCheckpoint = false;
+        Dictionary<string, long> checkpointFileDict = [];
+        Dictionary<string, long> newCheckpointDict = [];
 
-        Dictionary<string, string> diffPaths = [];
-
-        if (File.Exists("./log.txt")) {
-            Console.WriteLine("Log file found. Loading...");
-            foreach (var line in File.ReadAllLines("./log.txt")) {
-                string[] fileData = line.Split(": ");
-                if (!diffPaths.ContainsKey(fileData[0])) {
-                    diffPaths.Add(fileData[0], fileData[1]);
-                }
+        if (config.checkpointFile.Length > 0)
+        {
+            if (File.Exists(config.checkpointFile))
+            {
+                useCheckpoint = true;
+                Console.WriteLine($"Using checkpoint: {config.checkpointFile}");
+                var fromFile = File.ReadAllText(config.checkpointFile);
+                checkpointFileDict = JsonConvert.DeserializeObject<Dictionary<string, long>>(fromFile);
             }
-            Console.WriteLine($"Finished loading {diffPaths.Count} file path/size mappings.");
+            else
+            {
+                Console.WriteLine($"ERROR: Checkpoint file at location \"${config.checkpointFile}\" does not exist. Ignoring...");
+            }
+        }
+        else
+        {
+            Console.WriteLine($"No checkpoint file selected. Skipping...");
         }
 
+        Console.WriteLine($"Scanning {patchProvider.Files.Count} files...");
+        Console.WriteLine();
 
-        Console.WriteLine("Scanning files...");
         // Loop through all files and export the ones that match any of the exportJsonPaths (converted to regex)
         foreach (var file in patchProvider.Files)
         {
@@ -125,122 +136,134 @@ try
             bool isJsonExport = config.exportJsonPaths.Any(path => new Regex("^" + path + "$", RegexOptions.IgnoreCase).IsMatch(file.Value.Path));
             bool isPngExport = config.exportPngPaths.Any(path => new Regex("^" + path + "$", RegexOptions.IgnoreCase).IsMatch(file.Value.Path));
             bool isExcludedPath = config.excludedPaths.Any(path => new Regex("^" + path + "$", RegexOptions.IgnoreCase).IsMatch(file.Value.Path));
+            bool exportThisFile = true;
 
-            if (isJsonExport)
+            // If checkpoint is specified, skip unchanged files (same file size as in the checkpoint)
+            if (useCheckpoint && checkpointFileDict.TryGetValue(file.Value.Path, out long fileSize))
             {
-                Console.WriteLine($"{file.Value.Path}: {file.Value.Size}");
-                Console.WriteLine(long.Parse(diffPaths[file.Value.Path]) == file.Value.Size);
-
-                sb.Append($"{file.Value.Path}: {file.Value.Size}");
-                File.AppendAllText("./log.txt", sb.ToString() + Environment.NewLine);
-                sb.Clear();
+                exportThisFile = fileSize != file.Value.Size;
             }
 
-            // if (!isExcludedPath && (isJsonExport || isPngExport))
-            // {
-            //     try
-            //     {
-            //         switch (fileExtension)
-            //         {
-            //             case "uasset":
-            //             case "umap":
-            //                 {
-            //                     var allObjects = provider.LoadAllObjects(file.Value.Path);
+            if (config.createCheckpoint)
+            {
+                newCheckpointDict[file.Value.Path] = file.Value.Size;
+            }
 
-            //                     if (isPngExport)
-            //                     {
-            //                         foreach (var obj in allObjects)
-            //                         {
-            //                             // Only exports the first object that is a valid bitmap
-            //                             if (obj is UTexture2D texture)
-            //                             {
-            //                                 var bitmap = texture.Decode(ETexturePlatform.DesktopMobile);
+            if (!isExcludedPath && (isJsonExport || isPngExport) && exportThisFile)
+            {
+                try
+                {
+                    switch (fileExtension)
+                    {
+                        case "uasset":
+                        case "umap":
+                            {
+                                var allObjects = provider.LoadAllObjects(file.Value.Path);
 
-            //                                 if (bitmap != null)
-            //                                 {
-            //                                     Console.WriteLine("=> " + outputPath + ".png");
-            //                                     if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
+                                if (isPngExport)
+                                {
+                                    foreach (var obj in allObjects)
+                                    {
+                                        // Only exports the first object that is a valid bitmap
+                                        if (obj is UTexture2D texture)
+                                        {
+                                            var bitmap = texture.Decode(ETexturePlatform.DesktopMobile);
 
-            //                                     // Save the bitmap to a file
-            //                                     using (SKImage image = SKImage.FromBitmap(bitmap))
-            //                                     using (SKData data = image.Encode(SKEncodedImageFormat.Png, 100))
-            //                                     using (Stream stream = File.OpenWrite(outputPath + ".png"))
-            //                                     {
-            //                                         data.SaveTo(stream);
-            //                                     }
-            //                                     totalExportedFiles++;
+                                            if (bitmap != null)
+                                            {
+                                                Console.WriteLine("=> " + outputPath + ".png");
+                                                if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
 
-            //                                     break;
-            //                                 }
-            //                                 else
-            //                                 {
-            //                                     Console.WriteLine($"WARNING: The following texture is not a valid image bitmap: {file.Value.Path}");
+                                                // Save the bitmap to a file
+                                                using (SKImage image = SKImage.FromBitmap(bitmap))
+                                                using (SKData data = image.Encode(SKEncodedImageFormat.Png, 100))
+                                                using (Stream stream = File.OpenWrite(outputPath + ".png"))
+                                                {
+                                                    data.SaveTo(stream);
+                                                }
+                                                totalExportedFiles++;
 
-            //                                     if (config.includeJsonsInPngPaths)
-            //                                     {
-            //                                         // Serialize to JSON, then write to file
-            //                                         Console.WriteLine("=> " + outputPath + ".json");
-            //                                         var json = JsonConvert.SerializeObject(allObjects, Formatting.Indented);
-            //                                         if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
-            //                                         File.WriteAllText(outputPath + ".json", json);
-            //                                         totalExportedFiles++;
-            //                                     }
-            //                                 }
-            //                             }
-            //                             else if (config.includeJsonsInPngPaths)
-            //                             {
-            //                                 // Serialize to JSON, then write to file
-            //                                 Console.WriteLine("=> " + outputPath + ".json");
-            //                                 var json = JsonConvert.SerializeObject(allObjects, Formatting.Indented);
-            //                                 if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
-            //                                 File.WriteAllText(outputPath + ".json", json);
-            //                                 totalExportedFiles++;
-            //                             }
-            //                         }
-            //                     }
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine($"WARNING: The following texture is not a valid image bitmap: {file.Value.Path}");
 
-            //                     else if (isJsonExport)
-            //                     {
-            //                         // Serialize to JSON, then write to file
-            //                         Console.WriteLine("=> " + outputPath + ".json");
-            //                         var json = JsonConvert.SerializeObject(allObjects, Formatting.Indented);
-            //                         if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
-            //                         File.WriteAllText(outputPath + ".json", json);
-            //                         totalExportedFiles++;
-            //                     }
+                                                if (config.includeJsonsInPngPaths)
+                                                {
+                                                    // Serialize to JSON, then write to file
+                                                    Console.WriteLine("=> " + outputPath + ".json");
+                                                    var json = JsonConvert.SerializeObject(allObjects, Formatting.Indented);
+                                                    if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
+                                                    File.WriteAllText(outputPath + ".json", json);
+                                                    totalExportedFiles++;
+                                                }
+                                            }
+                                        }
+                                        else if (config.includeJsonsInPngPaths)
+                                        {
+                                            // Serialize to JSON, then write to file
+                                            Console.WriteLine("=> " + outputPath + ".json");
+                                            var json = JsonConvert.SerializeObject(allObjects, Formatting.Indented);
+                                            if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
+                                            File.WriteAllText(outputPath + ".json", json);
+                                            totalExportedFiles++;
+                                        }
+                                    }
+                                }
 
-            //                     break;
-            //                 }
-            //             case "locres":
-            //                 {
-            //                     if (isJsonExport && provider.TryCreateReader(file.Value.Path, out var archive))
-            //                     {
-            //                         Console.WriteLine("=> " + outputPath + ".json");
-            //                         var locres = new FTextLocalizationResource(archive);
-            //                         var json = JsonConvert.SerializeObject(locres, Formatting.Indented);
-            //                         if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
-            //                         File.WriteAllText(outputPath + ".json", json);
-            //                         totalExportedFiles++;
-            //                     }
-            //                     break;
-            //                 }
-            //         }
-            //     }
-            //     catch (AggregateException)
-            //     {
-            //         Console.WriteLine($"ERROR: File cannot be opened: {file.Value.Path}. Possible issues include incorrect UE version in config.json, or this file type is not supported.");
-            //     }
+                                else if (isJsonExport)
+                                {
+                                    // Serialize to JSON, then write to file
+                                    Console.WriteLine("=> " + outputPath + ".json");
+                                    var json = JsonConvert.SerializeObject(allObjects, Formatting.Indented);
+                                    if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
+                                    File.WriteAllText(outputPath + ".json", json);
+                                    totalExportedFiles++;
+                                }
 
-            //     totalRegexMatches++;
-            // }
+                                break;
+                            }
+                        case "locres":
+                            {
+                                if (isJsonExport && provider.TryCreateReader(file.Value.Path, out var archive))
+                                {
+                                    Console.WriteLine("=> " + outputPath + ".json");
+                                    var locres = new FTextLocalizationResource(archive);
+                                    var json = JsonConvert.SerializeObject(locres, Formatting.Indented);
+                                    if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
+                                    File.WriteAllText(outputPath + ".json", json);
+                                    totalExportedFiles++;
+                                }
+                                break;
+                            }
+                    }
+                }
+                catch (AggregateException)
+                {
+                    Console.WriteLine($"ERROR: File cannot be opened: {file.Value.Path}. Possible issues include incorrect UE version in config.json, or this file type is not supported.");
+                }
 
-            totalFiles++;
+                totalRegexMatches++;
+            }
+
+            if (exportThisFile) totalFiles++;
         }
 
         Console.WriteLine();
+
+        if (config.createCheckpoint)
+        {
+            // Export new checkpoint file
+            var newCheckpointJson = JsonConvert.SerializeObject(newCheckpointDict, Formatting.Indented);
+            var dateStamp = DateTime.Now.ToString("MM-dd-yyyy HH-mm");
+            File.WriteAllText($"./{config.gameTitle} {dateStamp}.ckpt", newCheckpointJson);
+            Console.WriteLine($"Created checkpoint file: ./{config.gameTitle} {dateStamp}.json");
+        }
+
+        Console.WriteLine($"Regex matched {totalRegexMatches} out of {totalFiles} {(useCheckpoint ? "changed files" : "total files")}.");
+        Console.WriteLine($"Exported {totalExportedFiles} files in {elapsed(start, now(), 1000)} seconds");
     }
-    Console.WriteLine($"Regex matched {totalRegexMatches} out of {totalFiles} total files.");
-    Console.WriteLine($"Exported {totalExportedFiles} files in {elapsed(start, now(), 1000)} seconds");
 }
 catch (FileNotFoundException)
 {
@@ -263,6 +286,7 @@ static string elapsed(double start, double end, int factor = 1)
 
 public class ConfigObj
 {
+    public string gameTitle { get; set; }
     public string version { get; set; }
     public string paksDir { get; set; }
     public string outputDir { get; set; }
@@ -270,8 +294,9 @@ public class ConfigObj
     public bool keepDirectoryStructure { get; set; }
     public string lang { get; set; }
     public bool includeJsonsInPngPaths { get; set; }
+    public bool createCheckpoint { get; set; }
+    public string checkpointFile { get; set; }
     public List<string> exportJsonPaths { get; set; }
     public List<string> exportPngPaths { get; set; }
-
     public List<string> excludedPaths { get; set; }
 }

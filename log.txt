@@ -1,2 +1,0 @@
-Hotta/Content/Resources/Abilities/Buff/Wormhole/NewBuff/Voidbuffdes.uasset: 627
-Hotta/Content/Resources/Abilities/Buff/Wormhole/NewBuff/Voidbuffdes.uasset: 628

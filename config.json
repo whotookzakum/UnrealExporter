@@ -1,5 +1,6 @@
 [
     {
+        "gameTitle": "Tower of Fantasy",
         "version": "TowerOfFantasy",
         "lang": "English",
         "paksDir": "C:/Program Files (x86)/Steam/steamapps/common/Tower of Fantasy/Tower of Fantasy/Hotta/Content/Paks",
@@ -8,11 +9,12 @@
         "keepDirectoryStructure": true,
         "includeJsonsInPngPaths": false,
         "createCheckpoint": true,
-        "useCheckpoint": "",
+        "checkpointFile": "",
         "exportJsonPaths": [
-            "Hotta/Content/Resources/Abilities/Buff/Wormhole/NewBuff/Voidbuffdes.uasset"
+            
         ],
         "exportPngPaths": [
+            
         ],
         "excludedPaths": [
             "Hotta/Content/Resources/CoreBlueprints/DataTable/ImitationElementEffectConfigDataTable.uasset",
