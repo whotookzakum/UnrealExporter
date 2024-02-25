@@ -121,7 +121,7 @@ public class UnrealExporter
                 foreach (var file in patchProvider.Files)
                 {
                     // define the thread and wrap the code for each file in it
-                    Thread pakThread = new Thread(new ThreadStart(() =>
+                    Thread thread = new Thread(new ThreadStart(() =>
                     {
                         // "Hotta/Content/Resources/UI/Activity/Activity/DT_Activityquest_Balance.uasset"
                         // file.Value.Path
@@ -274,9 +274,9 @@ public class UnrealExporter
                     }));
 
                     // lower thread priority for safety and cpu usage
-                    pakThread.Priority = ThreadPriority.BelowNormal;
+                    thread.Priority = ThreadPriority.BelowNormal;
                     
-                    pakThread.Start();
+                    thread.Start();
                 }
 
                 Console.WriteLine();
