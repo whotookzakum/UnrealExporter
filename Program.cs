@@ -258,7 +258,7 @@ try
             var newCheckpointJson = JsonConvert.SerializeObject(newCheckpointDict, Formatting.Indented);
             var dateStamp = DateTime.Now.ToString("MM-dd-yyyy HH-mm");
             File.WriteAllText($"./{config.gameTitle} {dateStamp}.ckpt", newCheckpointJson);
-            Console.WriteLine($"Created checkpoint file: ./{config.gameTitle} {dateStamp}.json");
+            Console.WriteLine($"Created checkpoint file: ./{config.gameTitle} {dateStamp}.ckpt");
         }
 
         Console.WriteLine($"Regex matched {totalRegexMatches} out of {totalFiles} {(useCheckpoint ? "changed files" : "total files")}.");
