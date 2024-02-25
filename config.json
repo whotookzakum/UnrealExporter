@@ -11,10 +11,17 @@
         "createCheckpoint": true,
         "checkpointFile": "",
         "exportJsonPaths": [
-            
+            "Hotta/Content/Resources/CoreBlueprints/DataTable.*\\.uasset",
+            "Hotta/Content/Resources/Dialogues/Quests/.*\\.uasset",
+            "Hotta/Content/Resources/Text/.*\\.uasset",
+            "Hotta/Content/Localization/Game/.*\\.uasset",
+            "Hotta/Content/Resources/Abilities/Buff/Wormhole/NewBuff/.*\\.uasset"
         ],
         "exportPngPaths": [
-            
+            "Hotta/Content/L10N/.*\\.uasset",
+            "Hotta/Content/ResourcesOverSea/.*\\.uasset",
+            "Hotta/Content/Resources/UI/.*\\.uasset",
+            "Hotta/Content/Resources/Icon/.*\\.uasset"
         ],
         "excludedPaths": [
             "Hotta/Content/Resources/CoreBlueprints/DataTable/ImitationElementEffectConfigDataTable.uasset",
