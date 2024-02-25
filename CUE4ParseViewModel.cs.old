@@ -1,3 +1,5 @@
+// From FModel source, for reference
+
 using System;
 using System.Collections.Generic;
 using System.IO;
