@@ -7,14 +7,14 @@ Feel free to customize the code however you want. The repo will be published for
 - [x] Multiple game support
 - [x] Regex paths for bulk exporting
 - [x] Path exclusions to avoid crashing
+- [x] Patch .pak reconciliation (courtesy of [MCMrARM](https://github.com/MCMrARM))
 - [ ] CLI args support
-- [ ] Patch .pak reconciliation
 - [ ] Log file
 
 ### Supported file types
-- [x] uasset
-- [x] umap
-- [x] locres
+- [x] uasset (to JSON or PNG)
+- [x] umap (to JSON)
+- [x] locres (to JSON)
 - [ ] everything else
 
 ## How to use
@@ -29,8 +29,12 @@ Feel free to customize the code however you want. The repo will be published for
 | aes                    | `string`        | The AES-256 decryption key to access game files. [Guide on how to obtain](https://github.com/Cracko298/UE4-AES-Key-Extracting-Guide). Leave blank if not needed. |
 | keepDirectoryStructure | `bool`          | If set to `true`, folders will be made matching those found in the .paks. If set to `false`, all files will be output at the root level of the `outputDir`.     |
 | lang                   | `string`        | Language that strings should be output in. [Supported languages](https://github.com/FabianFG/CUE4Parse/blob/master/CUE4Parse/UE4/Versions/ELanguage.cs). Useful for specifying the target language for localized resources. Will only work if the game supports the specified localization. Defaults to `English`. |
-| targetFilePaths        | `Array(string)` | A list of files that should be exported. Supports regex. Note: the path's root resides **inside the game files**—use [FModel](https://github.com/4sval/FModel) to verify the paths you need—i.e. `Hotta/Content/...` for Tower of Fantasy. |
-| excludedFilePaths      | `Array(string)` | A list of files that should be skipped, useful for avoiding files that crash CUE4Parse. Supports regex. Note: the path's root resides **inside the game files**—use [FModel](https://github.com/4sval/FModel) to verify the paths you need—i.e. `Hotta/Content/...` for Tower of Fantasy.  |
+| includeJsonsInPngPaths | `bool`          | If set to `true`, `exportPngPaths` will include objects that cannot be converted into images as JSON, such as DataTables and invalid bitmaps. If set to `false`, `exportPngPaths` will skip objects that cannot be converted to images. Useful for debugging image exports. |
+| exportJsonPaths        | `Array(string)` | A list of files to export as JSON. Supports regex. |
+| exportPngPaths        | `Array(string)` | A list of files to export as PNG. Supports regex. |
+| excludedFilePaths      | `Array(string)` | A list of files to skip exporting. Supports regex. Useful for avoiding files that crash CUE4Parse. |
+
+> Note: file paths reside **inside the game files**—use [FModel](https://github.com/4sval/FModel) to verify the paths you need. For example, Tower of Fantasy starts at `Hotta/Content/...`
 
 ### Building
 If you wish to build the project yourself, download .NET SDK 8.0, clone the repo, and configure `config.json` in the root directory.
