@@ -10,10 +10,11 @@ Feel free to customize the code however you want. The repo will be published for
 - [x] Patch .pak reconciliation (courtesy of [MCMrARM](https://github.com/MCMrARM))
 - [ ] CLI args support
 - [ ] Log file
+- [ ] Automatic AES key finding
 
 ### Supported file types
 - [x] uasset (to JSON or PNG)
-- [x] umap (to JSON)
+- [x] umap (to JSON; needs testing!)
 - [x] locres (to JSON)
 - [ ] everything else
 
@@ -53,24 +54,41 @@ dotnet publish -c Release --self-contained true -p:PublishSingleFile=true -p:Deb
 
 **Don't forget to paste config.json into the folder that contains the binary.**
 
-## Example file paths and exclusions lists
+## Example configs
 Below are examples of config regexes on a per-game basis. The excluded paths are a non-exhaustive list of files that are known to crash CUE4Parse.
 
 ### Tower of Fantasy
 ```json
-"targetFilePaths": [
-    "Hotta/Content/Resources/CoreBlueprints/DataTable.*\\.uasset",
-    "Hotta/Content/Resources/Dialogues/Quests/.*\\.uasset",
-    "Hotta/Content/Resources/Text/.*\\.uasset",
-    "Hotta/Content/Localization/Game/.*\\.uasset",
-    "Hotta/Content/Resources/Abilities/Buff/Wormhole/NewBuff/.*\\.uasset"
-],
-"excludedPaths": [
-    "Hotta/Content/Resources/CoreBlueprints/DataTable/ImitationElementEffectConfigDataTable.uasset",
-    "Hotta/Content/Resources/CoreBlueprints/DataTable/ImitationChatNodeDataTable.uasset",
-    "Hotta/Content/Resources/CoreBlueprints/DataTable/DamageFloatiesTemplatePathData.uasset",
-    "Hotta/Content/Resources/CoreBlueprints/DataTable/PlayerAnimSequenceDataTable.uasset",
-    "Hotta/Content/Resources/CoreBlueprints/DataTable/TamingMonster/DA_TamingMonster.uasset",
-    "Hotta/Content/Resources/CoreBlueprints/DataTable/PlayerCommonMontageDataTable.uasset"
+[
+    {
+        "version": "TowerOfFantasy",
+        "lang": "English",
+        "paksDir": "C:/Program Files (x86)/Steam/steamapps/common/Tower of Fantasy/Tower of Fantasy/Hotta/Content/Paks",
+        "outputDir": "./output",
+        "aes": "0x6E6B325B02B821BD46AF6B62B1E929DC89957DC6F8AA78210D5316798B7508F8",
+        "keepDirectoryStructure": true,
+        "includeJsonsInPngPaths": false,
+        "exportJsonPaths": [
+            "Hotta/Content/Resources/CoreBlueprints/DataTable.*\\.uasset",
+            "Hotta/Content/Resources/Dialogues/Quests/.*\\.uasset",
+            "Hotta/Content/Resources/Text/.*\\.uasset",
+            "Hotta/Content/Localization/Game/.*\\.uasset",
+            "Hotta/Content/Resources/Abilities/Buff/Wormhole/NewBuff/.*\\.uasset"
+        ],
+        "exportPngPaths": [
+            "Hotta/Content/L10N/.*\\.uasset",
+            "Hotta/Content/ResourcesOverSea/.*\\.uasset",
+            "Hotta/Content/Resources/UI/.*\\.uasset",
+            "Hotta/Content/Resources/Icon/.*\\.uasset"
+        ],
+        "excludedPaths": [
+            "Hotta/Content/Resources/CoreBlueprints/DataTable/ImitationElementEffectConfigDataTable.uasset",
+            "Hotta/Content/Resources/CoreBlueprints/DataTable/ImitationChatNodeDataTable.uasset",
+            "Hotta/Content/Resources/CoreBlueprints/DataTable/DamageFloatiesTemplatePathData.uasset",
+            "Hotta/Content/Resources/CoreBlueprints/DataTable/PlayerAnimSequenceDataTable.uasset",
+            "Hotta/Content/Resources/CoreBlueprints/DataTable/TamingMonster/DA_TamingMonster.uasset",
+            "Hotta/Content/Resources/CoreBlueprints/DataTable/PlayerCommonMontageDataTable.uasset"
+        ]
+    }
 ]
 ```
