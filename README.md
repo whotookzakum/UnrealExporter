@@ -1,7 +1,7 @@
 # UnrealExporter
-A batch file exporter for Unreal Engine games using [CUE4Parse](https://github.com/FabianFG/CUE4Parse). Currently only exports .umap and .uasset files as .json files.  
+A batch file exporter for Unreal Engine games using [CUE4Parse](https://github.com/FabianFG/CUE4Parse). Great for automating UE datamining, just specify the files you want and don't want, and speed up your exports by only exporting what's changed.
 
-Feel free to customize the code however you want. The repo will be published for reference, since CUE4Parse documentation is incomplete.  
+This project can be used as-is or as a reference, since CUE4Parse documentation is incomplete. Heavily references the source code of [FModel](https://github.com/4sval/FModel) for CUE4Parse usage.
 
 ## Features
 - [x] Multiple game support
@@ -12,6 +12,7 @@ Feel free to customize the code however you want. The repo will be published for
 - [ ] CLI args support
 - [ ] Log file
 - [ ] Automatic AES key finding
+- [ ] Automatic releases (GitHub actions)
 
 ### Supported file types
 - [x] uasset (to JSON or PNG)
