@@ -1,11 +1,12 @@
 [
     {
-        "gameTitle": "Tower of Fantasy",
+        "gameTitle": "Tower of Fantasy Global",
         "version": "TowerOfFantasy",
         "lang": "English",
         "paksDir": "C:/Program Files (x86)/Steam/steamapps/common/Tower of Fantasy/Tower of Fantasy/Hotta/Content/Paks",
         "outputDir": "./output",
         "aes": "0x6E6B325B02B821BD46AF6B62B1E929DC89957DC6F8AA78210D5316798B7508F8",
+        "logOutputs": true,
         "keepDirectoryStructure": true,
         "includeJsonsInPngPaths": false,
         "createCheckpoint": false,

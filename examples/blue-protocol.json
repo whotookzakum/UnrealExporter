@@ -1,0 +1,34 @@
+[
+    {
+        "gameTitle": "Blue Protocol",
+        "version": "4.27",
+        "lang": "English",
+        "paksDir": "C:/BandaiNamcoLauncherGames/BLUEPROTOCOL/BLUEPROTOCOL/Content/Paks",
+        "outputDir": "./output",
+        "aes": "0xEA9051DDACE1CCF98A0510F0E370BD986A75C74756E0309E6A578A47AF564255",
+        "logOutputs": true,
+        "keepDirectoryStructure": true,
+        "includeJsonsInPngPaths": false,
+        "createCheckpoint": false,
+        "checkpointFile": "",
+        "exportJsonPaths": [
+            "BLUEPROTOCOL/Content/Text/.*\\.uasset",
+            "BLUEPROTOCOL/Content/Blueprints/Manager/DT_.*\\.uasset",
+            "BLUEPROTOCOL/Content/Blueprints/Manager/EnemySet/.*\\.uasset",
+            "BLUEPROTOCOL/Content/Blueprints/UI/Icon/DT_.*\\.uasset",
+            "BLUEPROTOCOL/Content/Blueprints/UI/LoadingScreen/LoadingTips.*\\.uasset",
+            "BLUEPROTOCOL/Content/Blueprints/UI/Map/DT_.*\\.uasset",
+            "BLUEPROTOCOL/Content/Blueprints/UI/Map/CDT_.*\\.uasset",
+            "BLUEPROTOCOL/Content/Maps/.*_EN\\.umap",
+            "BLUEPROTOCOL/Content/Maps/.*_PU\\.umap",
+            "BLUEPROTOCOL/Content/Maps/.*_SC\\.umap",
+            "BLUEPROTOCOL/Content/Maps/.*_Nappo\\.umap",
+            "BLUEPROTOCOL/Content/Maps/DT_.*\\.uasset",
+            "BLUEPROTOCOL/Content/Blueprints/Dungeon/Develop/.*\\.uasset"
+        ],
+        "exportPngPaths": [
+            "BLUEPROTOCOL/Content/UI/.*\\.uasset"
+        ],
+        "excludedPaths": []
+    }
+]

@@ -9,10 +9,11 @@ This project can be used as-is or as a reference, since CUE4Parse documentation 
 - [x] Path exclusions to avoid crashing
 - [x] Patch .pak reconciliation (courtesy of [MCMrARM](https://github.com/MCMrARM))
 - [x] Checkpoint support to only export new/changed files
-- [ ] CLI args support
+- [x] Parallel-processing files
+- [ ] CLI args support (pass individual key/value or point to a specific config file)
 - [ ] Log file
 - [ ] Automatic AES key finding
-- [ ] Automatic releases (GitHub actions)
+- [ ] Automatic binary releases (GitHub actions)
 
 ### Supported file types
 - [x] uasset (to JSON or PNG)
@@ -25,7 +26,7 @@ This project can be used as-is or as a reference, since CUE4Parse documentation 
 It's recommended that you clone the repo instead of downloading a release, so that you can quickly get the latest updates with `git pull`.
 
 ### Download Release (NOT recommended)
-Simpler, but **not recommended** if you know how to use git.  
+Simpler, but **not recommended** if you know how to use git/terminal.  
 1. Download latest [release](https://github.com/whotookzakum/UnrealExporter/releases)
 2. Create and configure `config.json` (read Config Options below)
 3. Run `UnrealExporter.exe`
@@ -67,9 +68,11 @@ Example config files can be found in `/examples`. The excluded paths in the exam
 | checkpointFile         | `string`        | A __relative path__ to the checkpoint file to use. More details about checkpoints below. |
 | exportJsonPaths        | `Array(string)` | A list of files to export as JSON. Supports regex. |
 | exportPngPaths         | `Array(string)` | A list of files to export as PNG. Supports regex. |
-| excludedFilePaths      | `Array(string)` | A list of files to skip exporting. Supports regex. Useful for avoiding files that crash CUE4Parse. |
+| excludedFilePaths      | `Array(string)` | A list of files to skip exporting. Supports regex. Useful for avoiding files that crash CUE4Parse. Note: the program will try to automatically skip files that cannot be parsed by CUE4Parse, however some files may corrupt the heap when attempting to be parsed; as this is a memory issue and not technically a failed parse, such files are **not automatically skipped** and will need to be added to the excluded paths. |
 
 > Note: file paths for `exportJsonPaths`, `exportPngPaths`, and `excludedFilePaths` reside **inside the game files** (virtual file system). Use [FModel](https://github.com/4sval/FModel) to verify the paths that you wish to export. For example, Tower of Fantasy starts at `Hotta/Content/...`
+
+I recommend specifying file extension to avoid getting useless files/files that aren't supported by UnrealExporter yet in your output. For example, you may only need a .uasset to be exported as JSON, but if you don't specify the file extension, it can export other files such as .umap, .ubulk, etc. which may be undesired.
 
 ### Checkpoints
 Similar to FModel's `.fbkp` system, checkpoints allow you to export only new/modified files and skip unchanged files, reducing the amount of time needed to export. 
@@ -79,3 +82,42 @@ A `.ckpt` file is a JSON that maps each file's path to its size, i.e. `"Hotta/Co
 If a valid checkpoint is provided, the program will only export files that have different file sizes than the one in the checkpoint (modified files), or do not have an entry in the checkpoint (new files).
 
 **Checkpoint files for all paks will be generated regardless of which files are exported.** In other words, you can export 0 files and still generate a full checkpoint. This can be useful if you want a checkpoint but don't want to re-export existing files, or if you are using a checkpoint but still want to export a new checkpoint.
+
+### Multiple Configs (Coming Soon)
+**CURRENTLY NOT SUPPORTED**  
+While you can always export from multiple games in one config, you may want to target only one game without having to modify the config file every time. Multiple configs makes this easy.
+
+1. Create a folder in the root called `configs`
+2. Place config files in the folder, naming them something easy for you to remember **without spaces**, i.e. `blue-protocol.json` and `tower-of-fantasy-global.json`
+3. Run the program (see below)
+
+If you're using the `.exe` version, you will be prompted to select a game. 
+
+If you've cloned the repo, you can append the file name to the run command, i.e. `dotnet run blue-protocol`. If no file name is specified, you will be prompted to select a game.
+
+If the `configs` directory does not exist or does not contain a config JSON, the `config.json` in the root folder will be used as a fallback.
+
+## Supported Games
+By default, all games supported by FModel should technically be supported by UnrealExporter, as both use CUE4Parse under the hood. You can find working configs for games that have been tested and confirmed to be working in the `/examples` folder. Mileage may vary depending on the files you wish to export, so check for any error messages and exclude paths accordingly.
+
+### How to fix no files loading due to missing mapping file
+**CURRENTLY NOT SUPPORTED**  
+If you are loading a game like Palworld, you will need the correct `.usmap` file so that the game files will correctly load into CUE4Parse.
+
+The following instructions are a trimmed version of [this message](https://discord.com/channels/505994577942151180/1196354583040118824/1198468327308271698) by [rin](https://github.com/rinjugatla). Alternatively, you can just download Palworld's `.usmap` file in the [FModel Discord server](https://discord.com/channels/637265123144237061/1197882598899318895/1197882976013393990) (thanks to ChicoEevee).
+
+1. Install [Unreal Engine 4/5 Scripting System](https://github.com/UE4SS-RE/RE-UE4SS)
+2. Modify the configuration file. `ConsoleEnabled` can be 0 or 1.
+```
+[Debug]
+ConsoleEnabled = 0
+GuiConsoleEnabled = 1
+GuiConsoleVisible = 1
+```
+3. Launch the game
+4. Output mapping file from the UE4SS Debugging Tool > Dumper tab. The file will be located in `Palworld(Game Folder Root)\Pal\Binaries\Win64\Mappings.usmap`.
+
+Continue reading the [original post](https://discord.com/channels/505994577942151180/1196354583040118824/1198468327308271698) for instructions (with images!) on how to load the `.usmap` file in FModel.
+
+### How to fix no files loading due to incorrect AES key
+If you have the wrong AES key, refer to [this guide](https://github.com/Cracko298/UE4-AES-Key-Extracting-Guide) or [this tool (untested)](https://github.com/mmozeiko/aes-finder) to get the correct key.

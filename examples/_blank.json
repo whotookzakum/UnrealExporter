@@ -6,6 +6,7 @@
         "paksDir": "",
         "outputDir": "./output",
         "aes": "",
+        "logOutputs": true,
         "keepDirectoryStructure": true,
         "includeJsonsInPngPaths": false,
         "createCheckpoint": false,
