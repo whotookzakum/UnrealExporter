@@ -4,7 +4,7 @@ A batch file exporter for Unreal Engine games using [CUE4Parse](https://github.c
 This project can be used as-is or as a reference, since CUE4Parse documentation is incomplete. Heavily references the source code of [FModel](https://github.com/4sval/FModel) for CUE4Parse usage.
 
 ## [Features](#features)
-- [x] Multiple game support (via multiple objects or multiple configs)
+- [x] Multiple game support (via multiple config objects or multiple config files)
 - [x] Regex paths for bulk exporting
 - [x] Path exclusions to avoid crashing
 - [x] Patch .pak reconciliation (courtesy of [MCMrARM](https://github.com/MCMrARM))
