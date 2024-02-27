@@ -4,7 +4,7 @@ using CUE4Parse.FileProvider.Vfs;
 using CUE4Parse.UE4.IO.Objects;
 using CUE4Parse.UE4.VirtualFileSystem;
 
-namespace SBDumper;
+namespace UnrealExporter;
 
 public class PatchFileProvider : AbstractFileProvider
 {
