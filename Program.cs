@@ -22,47 +22,121 @@ public class UnrealExporter
     private static int totalExportedFiles = 0;
     private static bool useCheckpoint = false;
 
-    public static void Main()
+    public static List<ConfigObj> LoadConfigFile(string path)
     {
         try
         {
-            // Load config file
-            Console.WriteLine($"Loading config (/config.json)...");
-            string jsonString = File.ReadAllText("config.json");
-            List<ConfigObj> configs = JsonConvert.DeserializeObject<List<ConfigObj>>(jsonString) ?? [];
-
-            foreach (ConfigObj config in configs)
-            {
-                double start = Now();
-                totalFiles = 0;
-                totalRegexMatches = 0;
-                totalExportedFiles = 0;
-
-                EGame selectedVersion = GetGameVersion(config.Version);
-                Console.WriteLine($"Game: {config.GameTitle}");
-                Console.WriteLine($"Version: {selectedVersion}");
-                Console.WriteLine($"Locale: {config.Lang}");
-                Console.WriteLine($"Paks: {config.PaksDir}");
-                Console.WriteLine($"Output: {config.OutputDir}");
-                Console.WriteLine($"AES key: {config.Aes}");
-                Console.WriteLine($"Log output files: {config.LogOutputs}");
-                Console.WriteLine($"Keep directory structure: {config.KeepDirectoryStructure}");
-                Console.WriteLine($"Include JSONs in PNG paths: {config.IncludeJsonsInPngPaths}");
-                Console.WriteLine($"Create new checkpoint: {config.CreateNewCheckpoint}");
-
-                // Load CUE4Parse and export files
-                AbstractFileProvider provider = CreateProvider(config, selectedVersion);
-                Export(provider, config, start);
-            }
+            string jsonString = File.ReadAllText(path);
+            List<ConfigObj> configObjs = JsonConvert.DeserializeObject<List<ConfigObj>>(jsonString) ?? [];
+            return configObjs;
         }
         catch (FileNotFoundException)
         {
-            Console.WriteLine("ERROR: config.json not found.");
+            Console.WriteLine($"ERROR: {path} not found.");
         }
         catch (JsonException)
         {
-            Console.WriteLine("ERROR: config.json is not a valid JSON format.");
+            Console.WriteLine($"ERROR: {path} is not a valid JSON format.");
         }
+        return [];
+    }
+
+    public static List<ConfigObj> LoadAllConfigs(string[] args)
+    {
+        List<ConfigObj> allConfigObjs = [];
+
+        if (args.Length > 0)
+        {
+            int totalConfigFiles = 0;
+
+            // Load all files
+            if (args[0].ToLower().Equals("all"))
+            {
+                string[] filePaths = Directory.GetFiles($"{Directory.GetCurrentDirectory()}\\configs");
+                foreach (var filePath in filePaths)
+                {
+                    List<ConfigObj> configObjsInFile = LoadConfigFile(filePath);
+                    foreach (ConfigObj configObj in configObjsInFile)
+                    {
+                        allConfigObjs.Add(configObj);
+                    }
+                    if (configObjsInFile.Count > 0)
+                    {
+                        totalConfigFiles++;
+                        Console.WriteLine(filePath.Split(Path.DirectorySeparatorChar).Last());
+                    }
+                }
+            }
+            // Load specified files
+            else
+            {
+                foreach (var arg in args)
+                {
+                    List<ConfigObj> configObjsInFile = LoadConfigFile($"{Directory.GetCurrentDirectory()}\\configs\\{arg}.json");
+                    foreach (ConfigObj configObj in configObjsInFile)
+                    {
+                        allConfigObjs.Add(configObj);
+                    }
+                    if (configObjsInFile.Count > 0)
+                    {
+                        totalConfigFiles++;
+                        Console.WriteLine($"{arg}.json");
+                    }
+                }
+            }
+
+            Console.WriteLine($"Loaded {totalConfigFiles} config files ({allConfigObjs.Count} total objects)");
+        }
+        // Fallback to default config.json
+        else
+        {
+            Console.WriteLine("No config files specified. Defaulting to config.json..");
+            List<ConfigObj> configObjsInFile = LoadConfigFile($"{Directory.GetCurrentDirectory()}\\configs\\config.json");
+            foreach (ConfigObj configObj in configObjsInFile)
+            {
+                allConfigObjs.Add(configObj);
+            }
+            if (configObjsInFile.Count > 0)
+            {
+                Console.WriteLine($"Loaded config.json ({allConfigObjs.Count} total objects)");
+            }
+        }
+        Console.WriteLine();
+
+        return allConfigObjs;
+    }
+
+    public static void Main(string[] args)
+    {
+        double trueStart = Now();
+
+        List<ConfigObj> configs = LoadAllConfigs(args);
+
+        foreach (ConfigObj config in configs)
+        {
+            double start = Now();
+            totalFiles = 0;
+            totalRegexMatches = 0;
+            totalExportedFiles = 0;
+
+            EGame selectedVersion = GetGameVersion(config.Version);
+            Console.WriteLine($"Game: {config.GameTitle}");
+            Console.WriteLine($"Version: {selectedVersion}");
+            Console.WriteLine($"Locale: {config.Lang}");
+            Console.WriteLine($"Paks: {config.PaksDir}");
+            Console.WriteLine($"Output: {config.OutputDir}");
+            Console.WriteLine($"AES key: {config.Aes}");
+            Console.WriteLine($"Log output files: {config.LogOutputs}");
+            Console.WriteLine($"Keep directory structure: {config.KeepDirectoryStructure}");
+            Console.WriteLine($"Include JSONs in PNG paths: {config.IncludeJsonsInPngPaths}");
+            Console.WriteLine($"Create new checkpoint: {config.CreateNewCheckpoint}");
+
+            // Load CUE4Parse and export files
+            AbstractFileProvider provider = CreateProvider(config, selectedVersion);
+            Export(provider, config, start);
+        }
+
+        Console.WriteLine($"Finished in {Elapsed(trueStart, Now(), 1000)} seconds");
     }
 
     public static EGame GetGameVersion(string versionString)
@@ -100,7 +174,7 @@ public class UnrealExporter
         // Decrypt
         string aes = config.Aes.Length > 0 ? config.Aes : "0x0000000000000000000000000000000000000000000000000000000000000000";
         provider.SubmitKey(new FGuid(), new FAesKey(aes));
-        
+
         // Set locale if provided, otherwise English
         if (config.Lang?.Length > 0)
         {
@@ -118,7 +192,8 @@ public class UnrealExporter
 
         // Add mapping file based on GameTitle if provided
         string pathToMappingFile = $"{Directory.GetCurrentDirectory()}\\mappings\\{config.GameTitle}.usmap";
-        if (File.Exists(pathToMappingFile)) {
+        if (File.Exists(pathToMappingFile))
+        {
             Console.WriteLine($"Using mapping file: {pathToMappingFile}");
             patchProvider.MappingsContainer = new FileUsmapTypeMappingsProvider(pathToMappingFile);
         }
@@ -169,10 +244,11 @@ public class UnrealExporter
                 exportThisFile = fileSize != file.Value.Size;
             }
 
-            if (config.CreateNewCheckpoint) {
+            if (config.CreateNewCheckpoint)
+            {
                 newCheckpointDict.TryAdd(file.Value.Path, file.Value.Size);
             }
-                
+
             if (!isExcludedPath && (isJsonExport || isPngExport) && exportThisFile)
             {
                 try
@@ -282,10 +358,12 @@ public class UnrealExporter
 
         // Log results
         if (config.LogOutputs && totalExportedFiles > 0 && !config.CreateNewCheckpoint) Console.WriteLine();
-        if (useCheckpoint) {
+        if (useCheckpoint)
+        {
             Console.WriteLine($"Regex matched {totalRegexMatches} out of {totalFiles} changed files ({provider.Files.Count - totalFiles} unchanged)");
         }
-        else {
+        else
+        {
             Console.WriteLine($"Regex matched {totalRegexMatches} out of {totalFiles} total files");
         }
         Console.WriteLine($"Exported {totalExportedFiles} files in {Elapsed(start, Now(), 1000)} seconds");
@@ -323,8 +401,8 @@ public class UnrealExporter
         Console.WriteLine();
         var newCheckpointJson = JsonConvert.SerializeObject(newCheckpointDict, Formatting.Indented);
         var dateStamp = DateTime.Now.ToString("MM-dd-yyyy HH-mm");
-        File.WriteAllText($"./{config.GameTitle} {dateStamp}.ckpt", newCheckpointJson);
-        Console.WriteLine($"Created checkpoint file: ./{config.GameTitle} {dateStamp}.ckpt");
+        File.WriteAllText($"./checkpoints/{config.GameTitle} {dateStamp}.ckpt", newCheckpointJson);
+        Console.WriteLine($"Created checkpoint file: ./checkpoints/{config.GameTitle} {dateStamp}.ckpt");
     }
 
     public static double Now()

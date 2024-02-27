@@ -3,8 +3,8 @@ A batch file exporter for Unreal Engine games using [CUE4Parse](https://github.c
 
 This project can be used as-is or as a reference, since CUE4Parse documentation is incomplete. Heavily references the source code of [FModel](https://github.com/4sval/FModel) for CUE4Parse usage.
 
-## Features
-- [x] Multiple game support
+## [Features](#features)
+- [x] Multiple game support (via multiple objects or multiple configs)
 - [x] Regex paths for bulk exporting
 - [x] Path exclusions to avoid crashing
 - [x] Patch .pak reconciliation (courtesy of [MCMrARM](https://github.com/MCMrARM))
@@ -16,38 +16,38 @@ This project can be used as-is or as a reference, since CUE4Parse documentation 
 - [ ] Automatic AES key finding
 - [ ] Automatic binary releases (GitHub actions)
 
-### Supported file types
+### [Supported file types](#supported-file-types)
 - [x] uasset (to JSON or PNG)
 - [x] umap (to JSON)
 - [x] locres (to JSON)
 - [ ] everything else
 
-## Usage
+## [Usage](#usage)
 > [!TIP]
 > If you know how to use git and the terminal, I recommend cloning the repo instead of downloading a release so that you can quickly get the latest updates with `git pull`.
 
 ### Easy setup (download and run)
 1. Download latest [release](https://github.com/whotookzakum/UnrealExporter/releases)
-2. Create and configure `config.json` (read Config Options below)
+2. Configure `config.json` (see Config Options below)
 3. Run `UnrealExporter.exe`
 
 ### Manual setup (recommended)
 1. Download and install .NET SDK 8.0
 2. Clone the repo, i.e. `git clone https://github.com/whotookzakum/UnrealExporter`
-3. Create and configure `config.json` (read Config Options below)
+3. Configure `config.json` (see Config Options below)
 4. Open terminal and execute `dotnet run`
 
-If you wish to build the project as a binary (.exe), use the following command:
+If you wish to build the project as a executable binary, use the following command:
 
 ```sh
 dotnet publish -c Release --self-contained true -p:PublishSingleFile=true -p:DebugType=None -p:DebugSymbols=false
 ```
 
-> [!WARNING]
-> **Don't forget to include config.json and any desired checkpoints in their respective directories.**
+## [Config Options](#config-options)
+Configure the `config.json` file in the `/configs` folder based on the game(s) you wish to export from. 
 
-## Config Options
-Create a `config.json` file in the root directory and configure it based on the game(s) you wish to export from. By adding multiple objects, you can point to different games at the same time.
+> [!TIP]
+> You can add multiple objects to export from different games, or different files from the same game. For different games, I recommend using [multiple configs](#multiple-configs) so you don't have to edit the same config file when you want to change games.
 
 Example config files can be found in `/examples`. The excluded paths in the example configs are a non-exhaustive list of game files that are known to crash CUE4Parse.
 
@@ -73,18 +73,30 @@ Example config files can be found in `/examples`. The excluded paths in the exam
 
 I recommend specifying file extensions to avoid getting useless/unexportable files in your output. For example, you may only need a `.uasset` to be exported as JSON, but if you don't specify the file extension, it can export other files such as `.umap`, `.ubulk`, etc. which may be undesired.
 
-<!-- ### Multiple Configs
+### [Multiple Configs](#multiple-configs)
 While you can always export from multiple games in one config, you may want to target only one game without having to modify the config file every time. Multiple configs makes this easy.
 
-1. Create a folder in the root called `configs`
-2. Place config files in the folder, naming them something easy for you to remember **without spaces**, i.e. `blue-protocol.json` and `tower-of-fantasy-global.json`
-3. Run the program
+Create multiple JSONs in the `configs` folder, naming them something easy for you to remember **without spaces**, i.e. `blue-protocol.json`, `tof.json`, and `kartrider.json`. The file names (without extensions) can be appended as args to the `dotnet run` command (see table).
 
-You can append the file name to the run command, i.e. `dotnet run blue-protocol`. If no file name is specified, you will be prompted to select a game.
+| Command                        | Selected configs                             |
+|--------------------------------|----------------------------------------------|
+| `dotnet run`                   | `config.json`                                |
+| `dotnet run all`               | Every JSON directly in the `/configs` folder |
+| `dotnet run blue-protocol tof` | `blue-protocol.json`, `tof.json`             |
 
-If the `configs` directory does not exist or does not contain a config JSON, the `config.json` in the root folder will be used as a fallback. -->
+<!-- If you use the `--configSelector` flag, the program will prompt you to select the configs you wish to use if there are multiple, listed by `gameTitle`. This is enabled by default in the binary executable.
 
-## Checkpoints
+Example:
+```
+Multiple config files detected. Select the ones you wish to execute with arrows keys and space.
+  [ ] All configs
+  [x] Palworld         (config.json)
+> [ ] BLUE PROTOCOL    (blue-protocol.json)
+  [x] Tower of Fantasy (tof.json)
+  [x] KartRider Drift  (krd.json)
+``` -->
+
+## [Checkpoints](#checkpoints)
 Similar to FModel's `.fbkp` system, checkpoints allow you to export only new/modified files and skip unchanged files, reducing the amount of time needed to export. 
 
 A `.ckpt` file is a JSON that maps each file's path to its size, i.e. `"Hotta/Content/Resources/FB/FB_Gulan/Warning.uexp": 3513`. 
@@ -96,7 +108,7 @@ If a valid checkpoint is provided, the program will only export files that have 
 > [!TIP]
 > If you want to create a checkpoint but don't want to re-export existing files, set `"createNewCheckpoint": true"` and change the export paths to empty arrays.
 
-## Supported Games
+## [Supported Games](#supported-games)
 By default, all games supported by FModel should technically be supported by UnrealExporter, as both use CUE4Parse under the hood. You can find working configs for games that have been tested and confirmed to be working in the `/examples` folder. Mileage may vary depending on the files you wish to export, so check for any error messages and exclude paths accordingly.
 
 ### How to fix no files loading due to missing mapping file
