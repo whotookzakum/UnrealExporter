@@ -1,9 +1,9 @@
 [
     {
-        "gameTitle": "Palworld",
-        "version": "5.1",
+        "gameTitle": "",
+        "version": "",
         "lang": "English",
-        "paksDir": "C:/Program Files (x86)/Steam/steamapps/common/Palworld/Pal/Content/Paks",
+        "paksDir": "",
         "outputDir": "./output",
         "aes": "",
         "logOutputs": true,
@@ -13,9 +13,6 @@
         "useCheckpointFile": "",
         "exportJsonPaths": [],
         "exportPngPaths": [],
-        "excludedPaths": [
-            "Pal/Content/Pal/Blueprint/MapObject/.*",
-            "Pal/Content/Pal/Blueprint/UI/UserInterface/MainMenu/.*"
-        ]
+        "excludedPaths": []
     }
 ]
