@@ -10,6 +10,7 @@ using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse_Conversion.Textures;
 using SkiaSharp;
 using CUE4Parse.UE4.Localization;
+using System.Collections.Concurrent;
 
 namespace UnrealExporter;
 
@@ -123,7 +124,7 @@ public class UnrealExporter
         // Load checkpoint if provided
         useCheckpoint = false;
         Dictionary<string, long> loadedCheckpoint = LoadCheckpointFile(config);
-        Dictionary<string, long> newCheckpointDict = [];
+        ConcurrentDictionary<string, long> newCheckpointDict = [];
 
         Console.WriteLine($"Scanning {provider.Files.Count} files...{Environment.NewLine}");
 
@@ -161,11 +162,10 @@ public class UnrealExporter
                 exportThisFile = fileSize != file.Value.Size;
             }
 
-            if (config.CreateCheckpoint)
-            {
-                newCheckpointDict[file.Value.Path] = file.Value.Size;
+            if (config.CreateCheckpoint) {
+                newCheckpointDict.TryAdd(file.Value.Path, file.Value.Size);
             }
-
+                
             if (!isExcludedPath && (isJsonExport || isPngExport) && exportThisFile)
             {
                 try
@@ -188,7 +188,7 @@ public class UnrealExporter
 
                                             if (bitmap != null)
                                             {
-                                                Console.WriteLine("=> " + outputPath + ".png");
+                                                if (config.LogOutputs) Console.WriteLine("=> " + outputPath + ".png");
                                                 if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
 
                                                 // Save the bitmap to a file
@@ -209,7 +209,7 @@ public class UnrealExporter
                                                 if (config.IncludeJsonsInPngPaths)
                                                 {
                                                     // Serialize to JSON, then write to file
-                                                    Console.WriteLine("=> " + outputPath + ".json");
+                                                    if (config.LogOutputs) Console.WriteLine("=> " + outputPath + ".json");
                                                     var json = JsonConvert.SerializeObject(allObjects, Formatting.Indented);
                                                     if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
                                                     File.WriteAllText(outputPath + ".json", json);
@@ -220,7 +220,7 @@ public class UnrealExporter
                                         else if (config.IncludeJsonsInPngPaths)
                                         {
                                             // Serialize to JSON, then write to file
-                                            Console.WriteLine("=> " + outputPath + ".json");
+                                            if (config.LogOutputs) Console.WriteLine("=> " + outputPath + ".json");
                                             var json = JsonConvert.SerializeObject(allObjects, Formatting.Indented);
                                             if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
                                             File.WriteAllText(outputPath + ".json", json);
@@ -232,7 +232,7 @@ public class UnrealExporter
                                 else if (isJsonExport)
                                 {
                                     // Serialize to JSON, then write to file
-                                    Console.WriteLine("=> " + outputPath + ".json");
+                                    if (config.LogOutputs) Console.WriteLine("=> " + outputPath + ".json");
                                     var json = JsonConvert.SerializeObject(allObjects, Formatting.Indented);
                                     if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
                                     File.WriteAllText(outputPath + ".json", json);
@@ -245,7 +245,7 @@ public class UnrealExporter
                             {
                                 if (isJsonExport && provider.TryCreateReader(file.Value.Path, out var archive))
                                 {
-                                    Console.WriteLine("=> " + outputPath + ".json");
+                                    if (config.LogOutputs) Console.WriteLine("=> " + outputPath + ".json");
                                     var locres = new FTextLocalizationResource(archive);
                                     var json = JsonConvert.SerializeObject(locres, Formatting.Indented);
                                     if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
@@ -267,16 +267,14 @@ public class UnrealExporter
             if (exportThisFile) Interlocked.Increment(ref totalFiles);
         });
 
-
         // Create checkpoint
         if (config.CreateCheckpoint)
         {
             CreateCheckpointFile(newCheckpointDict, config);
         }
 
-        if (config.LogOutputs && totalExportedFiles > 0) Console.WriteLine();
-
-        
+        // Log results
+        if (config.LogOutputs && totalExportedFiles > 0 && !config.CreateCheckpoint) Console.WriteLine();
         if (useCheckpoint) {
             Console.WriteLine($"Regex matched {totalRegexMatches} out of {totalFiles} changed files ({provider.Files.Count - totalFiles} unchanged)");
         }
@@ -312,8 +310,9 @@ public class UnrealExporter
         }
     }
 
-    public static void CreateCheckpointFile(Dictionary<string, long> newCheckpointDict, ConfigObj config)
+    public static void CreateCheckpointFile(ConcurrentDictionary<string, long> newCheckpointDict, ConfigObj config)
     {
+        Console.WriteLine();
         var newCheckpointJson = JsonConvert.SerializeObject(newCheckpointDict, Formatting.Indented);
         var dateStamp = DateTime.Now.ToString("MM-dd-yyyy HH-mm");
         File.WriteAllText($"./{config.GameTitle} {dateStamp}.ckpt", newCheckpointJson);

@@ -59,7 +59,7 @@ Example config files can be found in `/examples`. The excluded paths in the exam
 | paksDir                | `string`        | An __absolute path__ to the game directory containing the .pak file(s). |
 | outputDir              | `string`        | A __relative path__ to where you want to place the exported files. |
 | aes                    | `string`        | The AES-256 decryption key to access game files. [Guide on how to obtain](https://github.com/Cracko298/UE4-AES-Key-Extracting-Guide). Leave blank if not needed. |
-| logOutputs             | `bool`          | If set to `true`, every exported file's path will be logged. If set to `false`, these logs are skipped. | 
+| logOutputs             | `bool`          | If set to `true`, every exported file's path will be logged. If set to `false`, these logs are skipped. Note: The logging occurs **before** attempting to export the file, so if the program crashes, the last logged file may be the culprit. | 
 | keepDirectoryStructure | `bool`          | If set to `true`, folders will be made matching those found in the .paks. If set to `false`, all files will be output at the root level of the `outputDir`.     |
 | lang                   | `string`        | Language that strings should be output in. [Supported languages](https://github.com/FabianFG/CUE4Parse/blob/master/CUE4Parse/UE4/Versions/ELanguage.cs). Useful for specifying the target language for localized resources. Will only work if the game supports the specified localization. Defaults to `English`. |
 | includeJsonsInPngPaths | `bool`          | If set to `true`, `exportPngPaths` will include objects that cannot be converted into images as JSON, such as DataTables and invalid bitmaps. If set to `false`, `exportPngPaths` will skip objects that cannot be converted to images. Useful for debugging image exports. |
@@ -78,4 +78,4 @@ A `.ckpt` file is a JSON that maps each file's path to its size, i.e. `"Hotta/Co
 
 If a valid checkpoint is provided, the program will only export files that have different file sizes than the one in the checkpoint (modified files), or do not have an entry in the checkpoint (new files).
 
-**Checkpoint files for all paks will be generated regardless of which files are exported.** In other words, you can export 0 files and still generate a full checkpoint. This can be useful if you want a checkpoint but don't want to re-export existing files.
+**Checkpoint files for all paks will be generated regardless of which files are exported.** In other words, you can export 0 files and still generate a full checkpoint. This can be useful if you want a checkpoint but don't want to re-export existing files, or if you are using a checkpoint but still want to export a new checkpoint.
