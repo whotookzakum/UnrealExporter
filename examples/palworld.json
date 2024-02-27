@@ -9,8 +9,8 @@
         "logOutputs": true,
         "keepDirectoryStructure": true,
         "includeJsonsInPngPaths": false,
-        "createCheckpoint": false,
-        "checkpointFile": "",
+        "createNewCheckpoint": false,
+        "useCheckpointFile": "",
         "exportJsonPaths": [
             "Pal/Content/Pal/Blueprint/Character/.*\\.uasset",
             "Pal/Content/Pal/DataAsset/.*\\.uasset",

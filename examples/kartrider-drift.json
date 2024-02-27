@@ -9,8 +9,8 @@
         "logOutputs": true,
         "keepDirectoryStructure": true,
         "includeJsonsInPngPaths": false,
-        "createCheckpoint": true,
-        "checkpointFile": "",
+        "createNewCheckpoint": true,
+        "useCheckpointFile": "",
         "exportJsonPaths": [
             "KartDrift/Content/DataTable/.*\\.uasset"
         ],

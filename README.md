@@ -8,7 +8,7 @@ This project can be used as-is or as a reference, since CUE4Parse documentation 
 - [x] Regex paths for bulk exporting
 - [x] Path exclusions to avoid crashing
 - [x] Patch .pak reconciliation (courtesy of [MCMrARM](https://github.com/MCMrARM))
-- [x] Checkpoint support to only export new/changed files
+- [x] Checkpoint support (only export new/changed files!)
 - [x] Parallel-processing files
 - [ ] Specify mapping file (such as naming it the same as gameTitle in `/mappings` folder)
 - [ ] CLI args support (pass individual key/value or point to a specific config file)
@@ -22,34 +22,31 @@ This project can be used as-is or as a reference, since CUE4Parse documentation 
 - [x] locres (to JSON)
 - [ ] everything else
 
-
 ## Usage
-It's recommended that you clone the repo instead of downloading a release, so that you can quickly get the latest updates with `git pull`.
+> [!TIP]
+> If you know how to use git and the terminal, I recommend cloning the repo instead of downloading a release so that you can quickly get the latest updates with `git pull`.
 
-### Download Release (NOT recommended)
-Simpler, but **not recommended** if you know how to use git/terminal.  
+### Easy setup (download and run)
 1. Download latest [release](https://github.com/whotookzakum/UnrealExporter/releases)
 2. Create and configure `config.json` (read Config Options below)
 3. Run `UnrealExporter.exe`
 
-### Manual Setup (recommended)
-More complex, but is the preferred method as you can quickly receive updates with `git pull`.  
-
+### Manual setup (recommended)
 1. Download and install .NET SDK 8.0
 2. Clone the repo, i.e. `git clone https://github.com/whotookzakum/UnrealExporter`
 3. Create and configure `config.json` (read Config Options below)
 4. Open terminal and execute `dotnet run`
 
-#### Building
-If you wish to build the project yourself, follow the same steps as above (no need to run), and publish as a binary (.exe) with the following command:
+If you wish to build the project as a binary (.exe), use the following command:
 
 ```sh
 dotnet publish -c Release --self-contained true -p:PublishSingleFile=true -p:DebugType=None -p:DebugSymbols=false
 ```
 
-**Don't forget to paste config.json and any desired checkpoints into the folder that contains the binary.**
+> [!WARNING]
+> **Don't forget to include config.json and any desired checkpoints in their respective directories.**
 
-### Config Options
+## Config Options
 Create a `config.json` file in the root directory and configure it based on the game(s) you wish to export from. By adding multiple objects, you can point to different games at the same time.
 
 Example config files can be found in `/examples`. The excluded paths in the example configs are a non-exhaustive list of game files that are known to crash CUE4Parse.
@@ -65,38 +62,39 @@ Example config files can be found in `/examples`. The excluded paths in the exam
 | keepDirectoryStructure | `bool`          | If set to `true`, folders will be made matching those found in the .paks. If set to `false`, all files will be output at the root level of the `outputDir`.     |
 | lang                   | `string`        | Language that strings should be output in. [Supported languages](https://github.com/FabianFG/CUE4Parse/blob/master/CUE4Parse/UE4/Versions/ELanguage.cs). Useful for specifying the target language for localized resources. Will only work if the game supports the specified localization. Defaults to `English`. |
 | includeJsonsInPngPaths | `bool`          | If set to `true`, `exportPngPaths` will include objects that cannot be converted into images as JSON, such as DataTables and invalid bitmaps. If set to `false`, `exportPngPaths` will skip objects that cannot be converted to images. Useful for debugging image exports. |
-| createCheckpoint       | `bool`          | If set to `true`, will output a new checkpoint file in the root directory. If set to `false`, will not create a checkpoint file. |
-| checkpointFile         | `string`        | A __relative path__ to the checkpoint file to use. More details about checkpoints below. |
+| createNewCheckpoint       | `bool`          | If set to `true`, will output a new checkpoint file in the root directory. If set to `false`, will not create a checkpoint file. More details about checkpoints below. |
+| useCheckpointFile         | `string`        | A __relative path__ to the checkpoint file to use, i.e. `/checkpoints/Tower of Fantasy 02-26-2024 06-08.ckpt`. More details about checkpoints below. |
 | exportJsonPaths        | `Array(string)` | A list of files to export as JSON. Supports regex. |
 | exportPngPaths         | `Array(string)` | A list of files to export as PNG. Supports regex. |
 | excludedFilePaths      | `Array(string)` | A list of files to skip exporting. Supports regex. Useful for avoiding files that crash CUE4Parse. Note: the program will try to automatically skip files that cannot be parsed by CUE4Parse, however files causing issues such as segmentation faults and heap corruption will not be skipped as they are not technically a failed parse, so they will need to be added to the excluded paths. |
 
-> Note: file paths for `exportJsonPaths`, `exportPngPaths`, and `excludedFilePaths` reside **inside the game files** (virtual file system). Use [FModel](https://github.com/4sval/FModel) to verify the paths that you wish to export. For example, Tower of Fantasy starts at `Hotta/Content/...`
+> [!NOTE]
+> File paths for `exportJsonPaths`, `exportPngPaths`, and `excludedFilePaths` reside **inside the game files** (virtual file system). Use [FModel](https://github.com/4sval/FModel) to verify the paths that you wish to export. For example, Tower of Fantasy starts at `Hotta/Content/...`
 
-I recommend specifying file extension to avoid getting useless files/files that aren't supported by UnrealExporter yet in your output. For example, you may only need a .uasset to be exported as JSON, but if you don't specify the file extension, it can export other files such as .umap, .ubulk, etc. which may be undesired.
+I recommend specifying file extensions to avoid getting useless/unexportable files in your output. For example, you may only need a `.uasset` to be exported as JSON, but if you don't specify the file extension, it can export other files such as `.umap`, `.ubulk`, etc. which may be undesired.
 
-### Checkpoints
+<!-- ### Multiple Configs
+While you can always export from multiple games in one config, you may want to target only one game without having to modify the config file every time. Multiple configs makes this easy.
+
+1. Create a folder in the root called `configs`
+2. Place config files in the folder, naming them something easy for you to remember **without spaces**, i.e. `blue-protocol.json` and `tower-of-fantasy-global.json`
+3. Run the program
+
+You can append the file name to the run command, i.e. `dotnet run blue-protocol`. If no file name is specified, you will be prompted to select a game.
+
+If the `configs` directory does not exist or does not contain a config JSON, the `config.json` in the root folder will be used as a fallback. -->
+
+## Checkpoints
 Similar to FModel's `.fbkp` system, checkpoints allow you to export only new/modified files and skip unchanged files, reducing the amount of time needed to export. 
 
 A `.ckpt` file is a JSON that maps each file's path to its size, i.e. `"Hotta/Content/Resources/FB/FB_Gulan/Warning.uexp": 3513`. 
 
 If a valid checkpoint is provided, the program will only export files that have different file sizes than the one in the checkpoint (modified files), or do not have an entry in the checkpoint (new files).
 
-**Checkpoint files for all paks will be generated regardless of which files are exported.** In other words, you can export 0 files and still generate a full checkpoint. This can be useful if you want a checkpoint but don't want to re-export existing files, or if you are using a checkpoint but still want to export a new checkpoint.
+**Checkpoint files will always cover all the files in all paks, regardless of what your export/regexes.** That way, you can export a new checkpoint while using an older checkpoint, effectively only exporting the changed files in every game update.
 
-### Multiple Configs (Coming Soon)
-**CURRENTLY NOT SUPPORTED**  
-While you can always export from multiple games in one config, you may want to target only one game without having to modify the config file every time. Multiple configs makes this easy.
-
-1. Create a folder in the root called `configs`
-2. Place config files in the folder, naming them something easy for you to remember **without spaces**, i.e. `blue-protocol.json` and `tower-of-fantasy-global.json`
-3. Run the program (see below)
-
-If you're using the `.exe` version, you will be prompted to select a game. 
-
-If you've cloned the repo, you can append the file name to the run command, i.e. `dotnet run blue-protocol`. If no file name is specified, you will be prompted to select a game.
-
-If the `configs` directory does not exist or does not contain a config JSON, the `config.json` in the root folder will be used as a fallback.
+> [!TIP]
+> If you want to create a checkpoint but don't want to re-export existing files, set `"createNewCheckpoint": true"` and change the export paths to empty arrays.
 
 ## Supported Games
 By default, all games supported by FModel should technically be supported by UnrealExporter, as both use CUE4Parse under the hood. You can find working configs for games that have been tested and confirmed to be working in the `/examples` folder. Mileage may vary depending on the files you wish to export, so check for any error messages and exclude paths accordingly.

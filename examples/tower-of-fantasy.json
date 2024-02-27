@@ -9,8 +9,8 @@
         "logOutputs": true,
         "keepDirectoryStructure": true,
         "includeJsonsInPngPaths": false,
-        "createCheckpoint": false,
-        "checkpointFile": "",
+        "createNewCheckpoint": false,
+        "useCheckpointFile": "",
         "exportJsonPaths": [
             "Hotta/Content/Resources/CoreBlueprints/DataTable.*\\.uasset",
             "Hotta/Content/Resources/Dialogues/Quests/.*\\.uasset",

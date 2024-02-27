@@ -27,6 +27,7 @@ public class UnrealExporter
         try
         {
             // Load config file
+            Console.WriteLine($"Loading config (/config.json)...");
             string jsonString = File.ReadAllText("config.json");
             List<ConfigObj> configs = JsonConvert.DeserializeObject<List<ConfigObj>>(jsonString) ?? [];
 
@@ -47,7 +48,7 @@ public class UnrealExporter
                 Console.WriteLine($"Log output files: {config.LogOutputs}");
                 Console.WriteLine($"Keep directory structure: {config.KeepDirectoryStructure}");
                 Console.WriteLine($"Include JSONs in PNG paths: {config.IncludeJsonsInPngPaths}");
-                Console.WriteLine($"Create checkpoint file: {config.CreateCheckpoint}");
+                Console.WriteLine($"Create new checkpoint: {config.CreateNewCheckpoint}");
 
                 // Load CUE4Parse and export files
                 AbstractFileProvider provider = CreateProvider(config, selectedVersion);
@@ -129,7 +130,7 @@ public class UnrealExporter
     {
         // Load checkpoint if provided
         useCheckpoint = false;
-        Dictionary<string, long> loadedCheckpoint = LoadCheckpointFile(config);
+        Dictionary<string, long> loadedCheckpoint = LoadCheckpoint(config);
         ConcurrentDictionary<string, long> newCheckpointDict = [];
 
         Console.WriteLine($"Scanning {provider.Files.Count} files...{Environment.NewLine}");
@@ -168,7 +169,7 @@ public class UnrealExporter
                 exportThisFile = fileSize != file.Value.Size;
             }
 
-            if (config.CreateCheckpoint) {
+            if (config.CreateNewCheckpoint) {
                 newCheckpointDict.TryAdd(file.Value.Path, file.Value.Size);
             }
                 
@@ -274,13 +275,13 @@ public class UnrealExporter
         });
 
         // Create checkpoint
-        if (config.CreateCheckpoint)
+        if (config.CreateNewCheckpoint)
         {
-            CreateCheckpointFile(newCheckpointDict, config);
+            CreateCheckpoint(newCheckpointDict, config);
         }
 
         // Log results
-        if (config.LogOutputs && totalExportedFiles > 0 && !config.CreateCheckpoint) Console.WriteLine();
+        if (config.LogOutputs && totalExportedFiles > 0 && !config.CreateNewCheckpoint) Console.WriteLine();
         if (useCheckpoint) {
             Console.WriteLine($"Regex matched {totalRegexMatches} out of {totalFiles} changed files ({provider.Files.Count - totalFiles} unchanged)");
         }
@@ -291,21 +292,22 @@ public class UnrealExporter
         Console.WriteLine();
     }
 
-    public static Dictionary<string, long> LoadCheckpointFile(ConfigObj config)
+    public static Dictionary<string, long> LoadCheckpoint(ConfigObj config)
     {
-        if (config?.CheckpointFile?.Length > 0)
+        if (config?.UseCheckpointFile?.Length > 0)
         {
-            if (File.Exists(config.CheckpointFile))
+            string checkpointPath = $"{Directory.GetCurrentDirectory()}\\{config.UseCheckpointFile}";
+            if (File.Exists(checkpointPath))
             {
                 useCheckpoint = true;
-                Console.WriteLine($"Using checkpoint: {config.CheckpointFile}");
-                var fromFile = File.ReadAllText(config.CheckpointFile);
+                Console.WriteLine($"Using checkpoint: {config.UseCheckpointFile}");
+                var fromFile = File.ReadAllText(checkpointPath);
                 var loadedCheckpoint = JsonConvert.DeserializeObject<Dictionary<string, long>>(fromFile);
                 return loadedCheckpoint ?? [];
             }
             else
             {
-                Console.WriteLine($"ERROR: Checkpoint file at location \"${config.CheckpointFile}\" does not exist. Ignoring...");
+                Console.WriteLine($"ERROR: Checkpoint file at location \"{config.UseCheckpointFile}\" does not exist. Ignoring...");
                 return [];
             }
         }
@@ -316,7 +318,7 @@ public class UnrealExporter
         }
     }
 
-    public static void CreateCheckpointFile(ConcurrentDictionary<string, long> newCheckpointDict, ConfigObj config)
+    public static void CreateCheckpoint(ConcurrentDictionary<string, long> newCheckpointDict, ConfigObj config)
     {
         Console.WriteLine();
         var newCheckpointJson = JsonConvert.SerializeObject(newCheckpointDict, Formatting.Indented);
@@ -347,8 +349,8 @@ public class ConfigObj
     public required bool KeepDirectoryStructure { get; set; }
     public string? Lang { get; set; }
     public required bool IncludeJsonsInPngPaths { get; set; }
-    public bool CreateCheckpoint { get; set; }
-    public string? CheckpointFile { get; set; }
+    public bool CreateNewCheckpoint { get; set; }
+    public string? UseCheckpointFile { get; set; }
     public required List<string> ExportJsonPaths { get; set; }
     public required List<string> ExportPngPaths { get; set; }
     public required List<string> ExcludedPaths { get; set; }
