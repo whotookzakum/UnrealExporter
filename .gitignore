@@ -6,5 +6,6 @@
 /test
 **.ckpt
 /configs/**.json
+!config.json
 desktop.ini
 **.old

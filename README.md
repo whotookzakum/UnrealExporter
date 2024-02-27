@@ -49,7 +49,7 @@ Configure the `config.json` file in the `/configs` folder based on the game(s) y
 > [!TIP]
 > You can add multiple objects to export from different games, or different files from the same game. For different games, I recommend using [multiple configs](#multiple-configs) so you don't have to edit the same config file when you want to change games.
 
-Example config files can be found in `/examples`. The excluded paths in the example configs are a non-exhaustive list of game files that are known to crash CUE4Parse.
+Example config files can be found in `/configs/examples`. The excluded paths in the example configs are a non-exhaustive list of game files that are known to crash CUE4Parse.
 
 | Key | Type | Description |
 |-----|-----------|-----------|
@@ -109,7 +109,7 @@ If a valid checkpoint is provided, the program will only export files that have 
 > If you want to create a checkpoint but don't want to re-export existing files, set `"createNewCheckpoint": true"` and change the export paths to empty arrays.
 
 ## [Supported Games](#supported-games)
-By default, all games supported by FModel should technically be supported by UnrealExporter, as both use CUE4Parse under the hood. You can find working configs for games that have been tested and confirmed to be working in the `/examples` folder. Mileage may vary depending on the files you wish to export, so check for any error messages and exclude paths accordingly.
+By default, all games supported by FModel should technically be supported by UnrealExporter, as both use CUE4Parse under the hood. You can find working configs for games that have been tested and confirmed to be working in the `/configs/examples` folder. Mileage may vary depending on the files you wish to export, so check for any error messages and exclude paths accordingly.
 
 ### How to fix no files loading due to missing mapping file
 If you are loading a game like Palworld, you will need the correct `.usmap` file so that the game files will correctly load into CUE4Parse. If your game's mapping file is not already provided in the `mappings` folder, follow the instructions below to obtain the file.

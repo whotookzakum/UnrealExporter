@@ -22,90 +22,6 @@ public class UnrealExporter
     private static int totalExportedFiles = 0;
     private static bool useCheckpoint = false;
 
-    public static List<ConfigObj> LoadConfigFile(string path)
-    {
-        try
-        {
-            string jsonString = File.ReadAllText(path);
-            List<ConfigObj> configObjs = JsonConvert.DeserializeObject<List<ConfigObj>>(jsonString) ?? [];
-            return configObjs;
-        }
-        catch (FileNotFoundException)
-        {
-            Console.WriteLine($"ERROR: {path} not found.");
-        }
-        catch (JsonException)
-        {
-            Console.WriteLine($"ERROR: {path} is not a valid JSON format.");
-        }
-        return [];
-    }
-
-    public static List<ConfigObj> LoadAllConfigs(string[] args)
-    {
-        List<ConfigObj> allConfigObjs = [];
-
-        if (args.Length > 0)
-        {
-            int totalConfigFiles = 0;
-
-            // Load all files
-            if (args[0].ToLower().Equals("all"))
-            {
-                string[] filePaths = Directory.GetFiles($"{Directory.GetCurrentDirectory()}\\configs");
-                foreach (var filePath in filePaths)
-                {
-                    List<ConfigObj> configObjsInFile = LoadConfigFile(filePath);
-                    foreach (ConfigObj configObj in configObjsInFile)
-                    {
-                        allConfigObjs.Add(configObj);
-                    }
-                    if (configObjsInFile.Count > 0)
-                    {
-                        totalConfigFiles++;
-                        Console.WriteLine(filePath.Split(Path.DirectorySeparatorChar).Last());
-                    }
-                }
-            }
-            // Load specified files
-            else
-            {
-                foreach (var arg in args)
-                {
-                    List<ConfigObj> configObjsInFile = LoadConfigFile($"{Directory.GetCurrentDirectory()}\\configs\\{arg}.json");
-                    foreach (ConfigObj configObj in configObjsInFile)
-                    {
-                        allConfigObjs.Add(configObj);
-                    }
-                    if (configObjsInFile.Count > 0)
-                    {
-                        totalConfigFiles++;
-                        Console.WriteLine($"{arg}.json");
-                    }
-                }
-            }
-
-            Console.WriteLine($"Loaded {totalConfigFiles} config files ({allConfigObjs.Count} total objects)");
-        }
-        // Fallback to default config.json
-        else
-        {
-            Console.WriteLine("No config files specified. Defaulting to config.json..");
-            List<ConfigObj> configObjsInFile = LoadConfigFile($"{Directory.GetCurrentDirectory()}\\configs\\config.json");
-            foreach (ConfigObj configObj in configObjsInFile)
-            {
-                allConfigObjs.Add(configObj);
-            }
-            if (configObjsInFile.Count > 0)
-            {
-                Console.WriteLine($"Loaded config.json ({allConfigObjs.Count} total objects)");
-            }
-        }
-        Console.WriteLine();
-
-        return allConfigObjs;
-    }
-
     public static void Main(string[] args)
     {
         double trueStart = Now();
@@ -120,6 +36,7 @@ public class UnrealExporter
             totalExportedFiles = 0;
 
             EGame selectedVersion = GetGameVersion(config.Version);
+            Console.WriteLine($"Config: {config.ConfigFileName} (object #{config.ConfigObjectIndex + 1})");
             Console.WriteLine($"Game: {config.GameTitle}");
             Console.WriteLine($"Version: {selectedVersion}");
             Console.WriteLine($"Locale: {config.Lang}");
@@ -137,6 +54,100 @@ public class UnrealExporter
         }
 
         Console.WriteLine($"Finished in {Elapsed(trueStart, Now(), 1000)} seconds");
+    }
+
+    public static List<ConfigObj>? LoadConfigFile(string path)
+    {
+        try
+        {
+            string jsonString = File.ReadAllText(path);
+            List<ConfigObj> configObjs = JsonConvert.DeserializeObject<List<ConfigObj>>(jsonString) ?? [];
+            int index = 0;
+            foreach (ConfigObj obj in configObjs)
+            {
+                obj.ConfigFileName = path.Split(Path.DirectorySeparatorChar).Last();
+                obj.ConfigObjectIndex = index;
+                index++;
+            }
+            return configObjs;
+        }
+        catch (FileNotFoundException)
+        {
+            Console.WriteLine($"ERROR: {path} not found.");
+        }
+        catch (JsonException)
+        {
+            Console.WriteLine($"ERROR: {path} is not a valid JSON format.");
+        }
+        return null;
+    }
+
+    public static List<ConfigObj> LoadAllConfigs(string[] args)
+    {
+        List<ConfigObj> allConfigObjs = [];
+
+        if (args.Length > 0)
+        {
+            int totalConfigFiles = 0;
+
+            // Load all files
+            if (args[0].ToLower().Equals("all"))
+            {
+                string[] filePaths = Directory.GetFiles($"{Directory.GetCurrentDirectory()}\\configs");
+                foreach (var filePath in filePaths)
+                {
+                    List<ConfigObj>? configObjsInFile = LoadConfigFile(filePath);
+
+                    if (configObjsInFile != null)
+                    {
+                        foreach (ConfigObj configObj in configObjsInFile)
+                        {
+                            allConfigObjs.Add(configObj);
+                        }
+                        totalConfigFiles++;
+                        Console.WriteLine($"{filePath.Split(Path.DirectorySeparatorChar).Last()} ({configObjsInFile.Count} object{(configObjsInFile.Count > 1 ? "s" : "")})");
+                    }
+                }
+            }
+            // Load specified files
+            else
+            {
+                foreach (var arg in args)
+                {
+                    List<ConfigObj>? configObjsInFile = LoadConfigFile($"{Directory.GetCurrentDirectory()}\\configs\\{arg}.json");
+
+                    if (configObjsInFile != null)
+                    {
+                        foreach (ConfigObj configObj in configObjsInFile)
+                        {
+                            allConfigObjs.Add(configObj);
+                        }
+                        totalConfigFiles++;
+                        Console.WriteLine($"{arg}.json ({configObjsInFile.Count} object{(configObjsInFile.Count > 1 ? "s" : "")})");
+                    }
+                }
+            }
+
+            Console.WriteLine($"Loaded {totalConfigFiles} config file(s) ({allConfigObjs.Count} total object{(allConfigObjs.Count > 1 ? "s" : "")})");
+        }
+        // Fallback to default config.json
+        else
+        {
+            Console.WriteLine("No config file(s) specified. Defaulting to config.json...");
+            List<ConfigObj>? configObjsInFile = LoadConfigFile($"{Directory.GetCurrentDirectory()}\\configs\\config.json");
+
+            if (configObjsInFile != null)
+            {
+                foreach (ConfigObj configObj in configObjsInFile)
+                {
+                    allConfigObjs.Add(configObj);
+                }
+                Console.WriteLine($"Loaded config.json ({allConfigObjs.Count} object{(allConfigObjs.Count > 1 ? "s" : "")})");
+            }
+        }
+        Console.WriteLine();
+
+        return allConfigObjs;
     }
 
     public static EGame GetGameVersion(string versionString)
@@ -401,6 +412,11 @@ public class UnrealExporter
         Console.WriteLine();
         var newCheckpointJson = JsonConvert.SerializeObject(newCheckpointDict, Formatting.Indented);
         var dateStamp = DateTime.Now.ToString("MM-dd-yyyy HH-mm");
+        string checkpointsDirPath = $"{Directory.GetCurrentDirectory()}\\checkpoints";
+        if (!Directory.Exists(checkpointsDirPath))
+        {
+            Directory.CreateDirectory(checkpointsDirPath);
+        }
         File.WriteAllText($"./checkpoints/{config.GameTitle} {dateStamp}.ckpt", newCheckpointJson);
         Console.WriteLine($"Created checkpoint file: ./checkpoints/{config.GameTitle} {dateStamp}.ckpt");
     }
@@ -418,6 +434,8 @@ public class UnrealExporter
 
 public class ConfigObj
 {
+    public required string ConfigFileName { get; set; }
+    public required int ConfigObjectIndex { get; set; }
     public string? GameTitle { get; set; }
     public required string Version { get; set; }
     public required string PaksDir { get; set; }
