@@ -12,7 +12,7 @@
         "createCheckpoint": false,
         "checkpointFile": "",
         "exportJsonPaths": [
-            "Pal/Content/Pal/Blueprint/.*\\.uasset",
+            "Pal/Content/Pal/Blueprint/Character/.*\\.uasset",
             "Pal/Content/Pal/DataAsset/.*\\.uasset",
             "Pal/Content/Pal/DataTable/.*\\.uasset",
             "Pal/Content/Pal/Maps/.*\\.uasset"
@@ -20,6 +20,9 @@
         "exportPngPaths": [
             "Pal/Content/Pal/Texture/.*\\.uasset"
         ],
-        "excludedPaths": []
+        "excludedPaths": [
+            "Pal/Content/Pal/Blueprint/MapObject/.*",
+            "Pal/Content/Pal/Blueprint/UI/UserInterface/MainMenu/.*"
+        ]
     }
 ]

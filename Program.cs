@@ -11,6 +11,7 @@ using CUE4Parse_Conversion.Textures;
 using SkiaSharp;
 using CUE4Parse.UE4.Localization;
 using System.Collections.Concurrent;
+using CUE4Parse.MappingsProvider;
 
 namespace UnrealExporter;
 
@@ -95,12 +96,10 @@ public class UnrealExporter
         var provider = new DefaultFileProvider(config.PaksDir, SearchOption.TopDirectoryOnly, true, new VersionContainer(selectedVersion));
         provider.Initialize();
 
-        // Decrypt if AES key is provided
-        if (config.Aes?.Length > 0)
-        {
-            provider.SubmitKey(new FGuid(), new FAesKey(config.Aes));
-        }
-
+        // Decrypt
+        string aes = config.Aes.Length > 0 ? config.Aes : "0x0000000000000000000000000000000000000000000000000000000000000000";
+        provider.SubmitKey(new FGuid(), new FAesKey(aes));
+        
         // Set locale if provided, otherwise English
         if (config.Lang?.Length > 0)
         {
@@ -115,6 +114,13 @@ public class UnrealExporter
         // Load files into PatchFileProvider so the patch uassets override original uassets
         var patchProvider = new PatchFileProvider();
         patchProvider.Load(provider);
+
+        // Add mapping file based on GameTitle if provided
+        string pathToMappingFile = $"{Directory.GetCurrentDirectory()}\\mappings\\{config.GameTitle}.usmap";
+        if (File.Exists(pathToMappingFile)) {
+            Console.WriteLine($"Using mapping file: {pathToMappingFile}");
+            patchProvider.MappingsContainer = new FileUsmapTypeMappingsProvider(pathToMappingFile);
+        }
 
         return patchProvider;
     }
@@ -258,7 +264,7 @@ public class UnrealExporter
                 }
                 catch (AggregateException)
                 {
-                    Console.WriteLine($"ERROR: File cannot be opened: {file.Value.Path}. Possible issues include incorrect UE version in config.json, or this file type is not supported.");
+                    Console.WriteLine($"ERROR: File cannot be opened: {file.Value.Path}. Possible issues include incorrect UE version in config.json, missing mapping file, or this file type is not supported.");
                 }
 
                 Interlocked.Increment(ref totalRegexMatches);
@@ -336,7 +342,7 @@ public class ConfigObj
     public required string Version { get; set; }
     public required string PaksDir { get; set; }
     public required string OutputDir { get; set; }
-    public string? Aes { get; set; }
+    public required string Aes { get; set; }
     public bool LogOutputs { get; set; }
     public required bool KeepDirectoryStructure { get; set; }
     public string? Lang { get; set; }

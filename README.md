@@ -12,13 +12,13 @@ This project can be used as-is or as a reference, since CUE4Parse documentation 
 - [x] Parallel-processing files
 - [ ] Specify mapping file (such as naming it the same as gameTitle in `/mappings` folder)
 - [ ] CLI args support (pass individual key/value or point to a specific config file)
-- [ ] Log file
+- [ ] Log file (errors, which files were skipped, which files were outputted, config settings, etc.)
 - [ ] Automatic AES key finding
 - [ ] Automatic binary releases (GitHub actions)
 
 ### Supported file types
 - [x] uasset (to JSON or PNG)
-- [x] umap (to JSON; needs testing!)
+- [x] umap (to JSON)
 - [x] locres (to JSON)
 - [ ] everything else
 
@@ -56,12 +56,12 @@ Example config files can be found in `/examples`. The excluded paths in the exam
 
 | Key | Type | Description |
 |-----|-----------|-----------|
-| gameTitle              | `string`        | Title of the UE game. Can be any value, only used for recordkeeping and file generation purposes. |
-| version                | `string`        | Unreal Engine version. [Supported versions](https://github.com/FabianFG/CUE4Parse/blob/master/CUE4Parse/UE4/Versions/EGame.cs). Accepts strings separated by one period, like `"4.27"`, and supported game titles formatted camel-case or separated by spaces, such as `"TowerOfFantasy"` or `"tower of fantasy"`. |
+| gameTitle              | `string`        | Title of the UE game. Can be any arbitrary string that will work as a file name (not allowed: `\ / : * ? " \| < >`). Used for checkpoint naming, matching mapping files, and for your own recordkeeping. |
+| version                | `string`        | Unreal Engine version. [UE versions supported by CUE4Parse](https://github.com/FabianFG/CUE4Parse/blob/master/CUE4Parse/UE4/Versions/EGame.cs). Accepts strings separated by one period, like `"4.27"`, and supported game titles formatted camel-case or separated by spaces, such as `"TowerOfFantasy"` or `"tower of fantasy"`. Can be found by right clicking the game's .exe > Properties tab > Details (if removed, check the [FModel discord](https://discord.com/channels/637265123144237061/1090586945412931734)). |
 | paksDir                | `string`        | An __absolute path__ to the game directory containing the .pak file(s). |
 | outputDir              | `string`        | A __relative path__ to where you want to place the exported files. |
 | aes                    | `string`        | The AES-256 decryption key to access game files. [Guide on how to obtain](https://github.com/Cracko298/UE4-AES-Key-Extracting-Guide). Leave blank if not needed. |
-| logOutputs             | `bool`          | If set to `true`, every exported file's path will be logged. If set to `false`, these logs are skipped. Note: The logging occurs **before** attempting to export the file, so if the program crashes, the last logged file may be the culprit. | 
+| logOutputs             | `bool`          | If set to `true`, every exported file's path will be logged. If set to `false`, these logs are skipped. Note: The logging occurs **before** attempting to export the file, so if the program crashes, check the last few logged files (it will not always be the last file as the program has multiple threads running--I may add a feature to disable MT for debugging purposes in the future). | 
 | keepDirectoryStructure | `bool`          | If set to `true`, folders will be made matching those found in the .paks. If set to `false`, all files will be output at the root level of the `outputDir`.     |
 | lang                   | `string`        | Language that strings should be output in. [Supported languages](https://github.com/FabianFG/CUE4Parse/blob/master/CUE4Parse/UE4/Versions/ELanguage.cs). Useful for specifying the target language for localized resources. Will only work if the game supports the specified localization. Defaults to `English`. |
 | includeJsonsInPngPaths | `bool`          | If set to `true`, `exportPngPaths` will include objects that cannot be converted into images as JSON, such as DataTables and invalid bitmaps. If set to `false`, `exportPngPaths` will skip objects that cannot be converted to images. Useful for debugging image exports. |
@@ -69,7 +69,7 @@ Example config files can be found in `/examples`. The excluded paths in the exam
 | checkpointFile         | `string`        | A __relative path__ to the checkpoint file to use. More details about checkpoints below. |
 | exportJsonPaths        | `Array(string)` | A list of files to export as JSON. Supports regex. |
 | exportPngPaths         | `Array(string)` | A list of files to export as PNG. Supports regex. |
-| excludedFilePaths      | `Array(string)` | A list of files to skip exporting. Supports regex. Useful for avoiding files that crash CUE4Parse. Note: the program will try to automatically skip files that cannot be parsed by CUE4Parse, however some files may corrupt the heap when attempting to be parsed; as this is a memory issue and not technically a failed parse, such files are **not automatically skipped** and will need to be added to the excluded paths. |
+| excludedFilePaths      | `Array(string)` | A list of files to skip exporting. Supports regex. Useful for avoiding files that crash CUE4Parse. Note: the program will try to automatically skip files that cannot be parsed by CUE4Parse, however files causing issues such as segmentation faults and heap corruption will not be skipped as they are not technically a failed parse, so they will need to be added to the excluded paths. |
 
 > Note: file paths for `exportJsonPaths`, `exportPngPaths`, and `excludedFilePaths` reside **inside the game files** (virtual file system). Use [FModel](https://github.com/4sval/FModel) to verify the paths that you wish to export. For example, Tower of Fantasy starts at `Hotta/Content/...`
 
@@ -103,9 +103,9 @@ By default, all games supported by FModel should technically be supported by Unr
 
 ### How to fix no files loading due to missing mapping file
 **CURRENTLY NOT SUPPORTED**  
-If you are loading a game like Palworld, you will need the correct `.usmap` file so that the game files will correctly load into CUE4Parse.
+If you are loading a game like Palworld, you will need the correct `.usmap` file so that the game files will correctly load into CUE4Parse. If your game's mapping file is not already provided in the `mappings` folder, follow the instructions below to obtain the file.
 
-The following instructions are a trimmed version of [this message](https://discord.com/channels/505994577942151180/1196354583040118824/1198468327308271698) by [rin](https://github.com/rinjugatla). In the case of Palworld, you can just download the `.usmap` file from the [FModel Discord server](https://discord.com/channels/637265123144237061/1197882598899318895/1197882976013393990) (thanks to ChicoEevee).
+The following instructions are a trimmed version of [this message](https://discord.com/channels/505994577942151180/1196354583040118824/1198468327308271698) by [rin](https://github.com/rinjugatla).
 
 1. Install [Unreal Engine 4/5 Scripting System](https://github.com/UE4SS-RE/RE-UE4SS)
 2. Modify the configuration file. `ConsoleEnabled` can be 0 or 1.
@@ -116,11 +116,10 @@ GuiConsoleEnabled = 1
 GuiConsoleVisible = 1
 ```
 3. Launch the game
-4. Output mapping file from the UE4SS Debugging Tool > Dumper tab. The file will be located in `Palworld(Game Folder Root)\Pal\Binaries\Win64\Mappings.usmap`.  
+4. Output mapping file from the UE4SS Debugging Tool > Dumper tab. The file will be located alongside the game files in `.../Binaries/Win64/Mappings.usmap`.  
 Continue reading the [original post](https://discord.com/channels/505994577942151180/1196354583040118824/1198468327308271698) for instructions (with images!) on how to load the `.usmap` file in FModel.
-5. Create a folder at the root of UnrealExporter called `mappings`
-6. Copy or move the `.usmap` file to the `mappings` folder
-7. Rename the file to match the `gameTitle` inside of the config file. For example, if `"gameTitle": "Palworld"`, name the file `Palworld.usmap`.
+5. Copy or move the `.usmap` file to UnrealExporter's `mappings` folder
+6. Rename the file to match the `gameTitle` inside of the config file. For example, if `"gameTitle": "MyFunGame"`, name the file `MyFunGame.usmap`.
 
 ### How to fix no files loading due to incorrect AES key
 If you have the wrong AES key, refer to [this guide](https://github.com/Cracko298/UE4-AES-Key-Extracting-Guide) or [this tool (untested)](https://github.com/mmozeiko/aes-finder) to get the correct key.
