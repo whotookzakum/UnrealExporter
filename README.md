@@ -120,5 +120,7 @@ Continue reading the [original post](https://discord.com/channels/50599457794215
 5. Copy or move the `.usmap` file to UnrealExporter's `mappings` folder
 6. Rename the file to match the `gameTitle` inside of the config file. For example, if `"gameTitle": "MyFunGame"`, name the file `MyFunGame.usmap`.
 
+The exporter should now be able to detect the game files.
+
 ### How to fix no files loading due to incorrect AES key
 If you have the wrong AES key, refer to [this guide](https://github.com/Cracko298/UE4-AES-Key-Extracting-Guide) or [this tool (untested)](https://github.com/mmozeiko/aes-finder) to get the correct key.
