@@ -10,6 +10,7 @@ This project can be used as-is or as a reference, since CUE4Parse documentation 
 - [x] Patch .pak reconciliation (courtesy of [MCMrARM](https://github.com/MCMrARM))
 - [x] Checkpoint support to only export new/changed files
 - [x] Parallel-processing files
+- [ ] Specify mapping file (such as naming it the same as gameTitle in `/mappings` folder)
 - [ ] CLI args support (pass individual key/value or point to a specific config file)
 - [ ] Log file
 - [ ] Automatic AES key finding
@@ -115,9 +116,11 @@ GuiConsoleEnabled = 1
 GuiConsoleVisible = 1
 ```
 3. Launch the game
-4. Output mapping file from the UE4SS Debugging Tool > Dumper tab. The file will be located in `Palworld(Game Folder Root)\Pal\Binaries\Win64\Mappings.usmap`.
-
+4. Output mapping file from the UE4SS Debugging Tool > Dumper tab. The file will be located in `Palworld(Game Folder Root)\Pal\Binaries\Win64\Mappings.usmap`.  
 Continue reading the [original post](https://discord.com/channels/505994577942151180/1196354583040118824/1198468327308271698) for instructions (with images!) on how to load the `.usmap` file in FModel.
+5. Create a folder at the root of UnrealExporter called `mappings`
+6. Copy or move the `.usmap` file to the `mappings` folder
+7. Rename the file to match the `gameTitle` inside of the config file. For example, if `"gameTitle": "Palworld"`, name the file `Palworld.usmap`.
 
 ### How to fix no files loading due to incorrect AES key
 If you have the wrong AES key, refer to [this guide](https://github.com/Cracko298/UE4-AES-Key-Extracting-Guide) or [this tool (untested)](https://github.com/mmozeiko/aes-finder) to get the correct key.
