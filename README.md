@@ -104,7 +104,7 @@ By default, all games supported by FModel should technically be supported by Unr
 **CURRENTLY NOT SUPPORTED**  
 If you are loading a game like Palworld, you will need the correct `.usmap` file so that the game files will correctly load into CUE4Parse.
 
-The following instructions are a trimmed version of [this message](https://discord.com/channels/505994577942151180/1196354583040118824/1198468327308271698) by [rin](https://github.com/rinjugatla). Alternatively, you can just download Palworld's `.usmap` file in the [FModel Discord server](https://discord.com/channels/637265123144237061/1197882598899318895/1197882976013393990) (thanks to ChicoEevee).
+The following instructions are a trimmed version of [this message](https://discord.com/channels/505994577942151180/1196354583040118824/1198468327308271698) by [rin](https://github.com/rinjugatla). In the case of Palworld, you can just download the `.usmap` file from the [FModel Discord server](https://discord.com/channels/637265123144237061/1197882598899318895/1197882976013393990) (thanks to ChicoEevee).
 
 1. Install [Unreal Engine 4/5 Scripting System](https://github.com/UE4SS-RE/RE-UE4SS)
 2. Modify the configuration file. `ConsoleEnabled` can be 0 or 1.
