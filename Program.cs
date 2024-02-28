@@ -225,7 +225,7 @@ public class UnrealExporter
         if (args.Length > 0 || isReleaseMode)
         {
             // Show list of config files
-            if (args.Any(arg => arg.Equals("--cl")) || (isReleaseMode && args.Length < 1))
+            if (args.Any(arg => arg.Equals("--list")) || (isReleaseMode && args.Length < 1))
             {
                 args = args.Where(arg => arg != "--list").ToArray();
                 return LoadConfigsFromSelector(args, allConfigFilePaths);

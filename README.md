@@ -83,11 +83,11 @@ Create multiple JSONs in the `configs` folder, naming them something easy for yo
 | `dotnet run`                   | `config.json`                                                       |
 | `dotnet run all`               | Every JSON directly in the `/configs` folder                        |
 | `dotnet run blue-protocol tof` | `blue-protocol.json`, `tof.json`                                    |
-| `dotnet run --cl`              | Lists all configs found in the `/configs` folder                    |
-| `dotnet run --cl bp tof`       | Lists all configs, with `bp.json` and `tof.json` checked by default |
+| `dotnet run --list`              | Lists all configs found in the `/configs` folder                    |
+| `dotnet run --list bp tof`       | Lists all configs, with `bp.json` and `tof.json` checked by default |
 
 #### [Config List](#config-list)
-If you pass the config list flag `--cl`, the program will prompt you to select the configs you wish to use, listing the `gameTitle` for each object in the config. **This is enabled by default in the binary executable** unless an argument is passed.
+If you pass the config list flag `--list`, the program will prompt you to select the configs you wish to use, listing the `gameTitle` for each object in the config. **This is enabled by default in the binary executable** unless an argument is passed.
 
 Example:
 ```
