@@ -61,6 +61,9 @@ public class UnrealExporter
         {
             Console.WriteLine("\nExiting UnrealExporter.");
         }
+        catch(FileNotFoundException) {
+            Console.WriteLine($"ERROR: no config files found.");
+        }
     }
 
     public static List<ConfigObj>? LoadConfigFile(string path)
@@ -91,6 +94,9 @@ public class UnrealExporter
 
     public static List<ConfigObj> LoadConfigsFromSelector(string[] args, string[] allConfigFilePaths)
     {
+        if (allConfigFilePaths.Length < 1) {
+            throw new FileNotFoundException();
+        }
         bool[] selectedOptions = new bool[allConfigFilePaths.Length + 1];
         int currentOption = 0;
         List<string> gameTitles = [];
@@ -139,12 +145,10 @@ public class UnrealExporter
             }
         }
 
-        Console.WriteLine(gameTitles[0]);
-
         while (true)
         {
-            Console.Clear(); // Clear the console screen before re-printing options
-            Console.WriteLine($"{(allConfigFilePaths.Length > 0 ? "Multiple config files detected. " : "")}Select the ones you wish to execute with arrows keys, space to select, enter to confirm, or escape to exit.");
+            // Console.Clear(); // Clear the console screen before re-printing options
+            Console.WriteLine($"{(allConfigFilePaths.Length > 1 ? "Multiple config files detected. Select the ones" : "Select the config files")} you wish to execute with arrows keys, space to select, enter to confirm, or escape to exit.");
 
             for (int i = 0; i < selectedOptions.Length; i++)
             {
@@ -212,9 +216,9 @@ public class UnrealExporter
 
         bool isReleaseMode = false;
 
-        #if !DEBUG
+#if !DEBUG
             isReleaseMode = true;
-        #endif
+#endif
 
         if (args.Length > 0 || isReleaseMode)
         {
@@ -522,6 +526,11 @@ public class UnrealExporter
         if (config?.UseCheckpointFile?.Length > 0)
         {
             string checkpointPath = $"{Directory.GetCurrentDirectory()}\\{config.UseCheckpointFile}";
+            // if (config.UseCheckpointFile.Equals("latest"))
+            // {
+            //     string[] allCheckpointPaths = Directory.GetFiles($"{Directory.GetCurrentDirectory()}\\checkpoints");
+            // }
+            // else 
             if (File.Exists(checkpointPath))
             {
                 useCheckpoint = true;

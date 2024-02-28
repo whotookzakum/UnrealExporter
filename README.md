@@ -63,7 +63,7 @@ Example config files can be found in `/configs/examples`. The excluded paths in 
 | lang                   | `string`        | Language that strings should be output in. [Supported languages](https://github.com/FabianFG/CUE4Parse/blob/master/CUE4Parse/UE4/Versions/ELanguage.cs). Useful for specifying the target language for localized resources. Will only work if the game supports the specified localization. Defaults to `English`. |
 | includeJsonsInPngPaths | `bool`          | If set to `true`, `exportPngPaths` will include objects that cannot be converted into images as JSON, such as DataTables and invalid bitmaps. If set to `false`, `exportPngPaths` will skip objects that cannot be converted to images. Useful for debugging image exports. |
 | createNewCheckpoint    | `bool`          | If set to `true`, will output a new checkpoint file in the root directory. If set to `false`, will not create a checkpoint file. More details about checkpoints below. |
-| useCheckpointFile      | `string`        | A __relative path__ to the checkpoint file to use, i.e. `/checkpoints/Tower of Fantasy 02-26-2024 06-08.ckpt`. More details about checkpoints below. |
+| useCheckpointFile      | `string`        | A __relative path__ to the checkpoint file to use, i.e. `/checkpoints/Tower of Fantasy 02-26-2024 06-08.ckpt`. If set to `latest`, the program will look for the latest checkpoint in the `/checkpoints` folder that contains the `gameTitle` provided, i.e, between `/checkpoints/Palworld 02-26-2024 00-00.ckpt` and `/checkpoints/Palworld 05-30-2024 00-00.ckpt`, the latter will be used. More details about checkpoints below. |
 | exportJsonPaths        | `Array(string)` | A list of files to export as JSON. Supports regex. |
 | exportPngPaths         | `Array(string)` | A list of files to export as PNG. Supports regex. |
 | excludedFilePaths      | `Array(string)` | A list of files to skip exporting. Supports regex. Useful for avoiding files that crash CUE4Parse. Note: the program will try to automatically skip files that cannot be parsed by CUE4Parse, however files causing issues such as segmentation faults and heap corruption will not be skipped as they are not technically a failed parse, so they will need to be added to the excluded paths. |
@@ -86,16 +86,17 @@ Create multiple JSONs in the `configs` folder, naming them something easy for yo
 | `dotnet run --cl`              | Lists all configs found in the `/configs` folder                    |
 | `dotnet run --cl bp tof`       | Lists all configs, with `bp.json` and `tof.json` checked by default |
 
-If you use the config list flag `--cl`, the program will prompt you to select the configs you wish to use, listing the `gameTitle` for each object in the config. This is enabled by default in the binary executable unless an argument is passed.
+#### [Config List](#config-list)
+If you pass the config list flag `--cl`, the program will prompt you to select the configs you wish to use, listing the `gameTitle` for each object in the config. **This is enabled by default in the binary executable** unless an argument is passed.
 
 Example:
 ```
-Multiple config files detected. Select the ones you wish to execute with arrows keys and space.
-Select all
-  [x] config.json
-> [ ] blue-protocol.json
-  [x] tof.json
-  [x] krd.json
+Multiple config files detected. Select the ones you wish to execute with arrows keys, space to select, enter to confirm, or escape to exit.
+  Select all
+  [x] bp.json      (Blue Protocol)
+> [ ] config.json  (Palworld)
+  [ ] kr.json      (KartRider Drift)
+  [x] tof.json     (Tower of Fantasy Global, Tower of Fantasy Global)
 ```
 
 ## [Checkpoints](#checkpoints)
