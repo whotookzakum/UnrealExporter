@@ -61,7 +61,8 @@ public class UnrealExporter
         {
             Console.WriteLine("\nExiting UnrealExporter.");
         }
-        catch(FileNotFoundException) {
+        catch (FileNotFoundException)
+        {
             Console.WriteLine($"ERROR: no config files found.");
         }
     }
@@ -94,7 +95,8 @@ public class UnrealExporter
 
     public static List<ConfigObj> LoadConfigsFromSelector(string[] args, string[] allConfigFilePaths)
     {
-        if (allConfigFilePaths.Length < 1) {
+        if (allConfigFilePaths.Length < 1)
+        {
             throw new FileNotFoundException();
         }
         bool[] selectedOptions = new bool[allConfigFilePaths.Length + 1];
@@ -526,12 +528,40 @@ public class UnrealExporter
         if (config?.UseCheckpointFile?.Length > 0)
         {
             string checkpointPath = $"{Directory.GetCurrentDirectory()}\\{config.UseCheckpointFile}";
-            // if (config.UseCheckpointFile.Equals("latest"))
-            // {
-            //     string[] allCheckpointPaths = Directory.GetFiles($"{Directory.GetCurrentDirectory()}\\checkpoints");
-            // }
-            // else 
-            if (File.Exists(checkpointPath))
+            if (config.UseCheckpointFile.Equals("latest"))
+            {
+                string[] allCheckpointPaths = Directory.GetFiles($"{Directory.GetCurrentDirectory()}\\checkpoints");
+                var pathsForGameTitle = allCheckpointPaths.Where(path => path.Contains(config.GameTitle));
+
+                if (!pathsForGameTitle.Any())
+                {
+                    Console.WriteLine($"ERROR: could not find any checkpoints for \"{config.GameTitle}\". Ignoring...");
+                    return [];
+                }
+
+                var sortedPaths = pathsForGameTitle.OrderBy(path =>
+                {
+                    string dateTimeFromFileName = path.Split(Path.DirectorySeparatorChar).Last().Split(".").First().SubstringAfter(config.GameTitle)[1..];
+                    string date = dateTimeFromFileName.Split(" ")[0];
+                    string time = dateTimeFromFileName.Split(" ")[1].Replace("-", ":");
+                    double unixTime = DateTime.Parse($"{date} {time}").Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+                    return unixTime;
+                });
+
+                var latestCheckpointPath = sortedPaths.Last();
+
+                if (File.Exists(latestCheckpointPath))
+                {
+                    useCheckpoint = true;
+                    Console.WriteLine($"Using checkpoint: latest ({latestCheckpointPath.Split(Path.DirectorySeparatorChar).Last()})");
+                    var fromFile = File.ReadAllText(latestCheckpointPath);
+                    var loadedCheckpoint = JsonConvert.DeserializeObject<Dictionary<string, long>>(fromFile);
+                    return loadedCheckpoint ?? [];
+                }
+
+                return [];
+            }
+            else if (File.Exists(checkpointPath))
             {
                 useCheckpoint = true;
                 Console.WriteLine($"Using checkpoint: {config.UseCheckpointFile}");
@@ -541,7 +571,7 @@ public class UnrealExporter
             }
             else
             {
-                Console.WriteLine($"ERROR: Checkpoint file at location \"{config.UseCheckpointFile}\" does not exist. Ignoring...");
+                Console.WriteLine($"ERROR: checkpoint file at location \"{config.UseCheckpointFile}\" does not exist. Ignoring...");
                 return [];
             }
         }
@@ -581,7 +611,7 @@ public class ConfigObj
 {
     public required string ConfigFileName { get; set; }
     public required int ConfigObjectIndex { get; set; }
-    public string? GameTitle { get; set; }
+    public required string GameTitle { get; set; }
     public required string Version { get; set; }
     public required string PaksDir { get; set; }
     public required string OutputDir { get; set; }

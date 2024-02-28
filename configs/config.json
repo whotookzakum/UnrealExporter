@@ -1,21 +1,18 @@
 [
     {
-        "gameTitle": "Palworld",
-        "version": "5.1",
+        "gameTitle": "KartRider Drift",
+        "version": "4.27",
         "lang": "English",
-        "paksDir": "C:/Program Files (x86)/Steam/steamapps/common/Palworld/Pal/Content/Paks",
+        "paksDir": "C:/Program Files (x86)/Steam/steamapps/common/KartRider Drift/KartDrift/Content/Paks",
         "outputDir": "./output",
-        "aes": "",
+        "aes": "0x81D17527F7B00BB2FE1E61CBCBA5D340FAD33885C375958F07AF4C64B01B39E4",
         "logOutputs": true,
         "keepDirectoryStructure": true,
         "includeJsonsInPngPaths": false,
         "createNewCheckpoint": false,
-        "useCheckpointFile": "",
-        "exportJsonPaths": [],
+        "useCheckpointFile": "latest",
+        "exportJsonPaths": ["KartDrift/Content/DataTable/License/DataAsset/L66/L66_Message.uasset"],
         "exportPngPaths": [],
-        "excludedPaths": [
-            "Pal/Content/Pal/Blueprint/MapObject/.*",
-            "Pal/Content/Pal/Blueprint/UI/UserInterface/MainMenu/.*"
-        ]
+        "excludedPaths": []
     }
 ]
