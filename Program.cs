@@ -26,34 +26,41 @@ public class UnrealExporter
     {
         double trueStart = Now();
 
-        List<ConfigObj> configs = LoadAllConfigs(args);
-
-        foreach (ConfigObj config in configs)
+        try
         {
-            double start = Now();
-            totalFiles = 0;
-            totalRegexMatches = 0;
-            totalExportedFiles = 0;
+            List<ConfigObj> configs = LoadAllConfigs(args);
 
-            EGame selectedVersion = GetGameVersion(config.Version);
-            Console.WriteLine($"Config: {config.ConfigFileName} (object #{config.ConfigObjectIndex + 1})");
-            Console.WriteLine($"Game: {config.GameTitle}");
-            Console.WriteLine($"Version: {selectedVersion}");
-            Console.WriteLine($"Locale: {config.Lang}");
-            Console.WriteLine($"Paks: {config.PaksDir}");
-            Console.WriteLine($"Output: {config.OutputDir}");
-            Console.WriteLine($"AES key: {config.Aes}");
-            Console.WriteLine($"Log output files: {config.LogOutputs}");
-            Console.WriteLine($"Keep directory structure: {config.KeepDirectoryStructure}");
-            Console.WriteLine($"Include JSONs in PNG paths: {config.IncludeJsonsInPngPaths}");
-            Console.WriteLine($"Create new checkpoint: {config.CreateNewCheckpoint}");
+            foreach (ConfigObj config in configs)
+            {
+                double start = Now();
+                totalFiles = 0;
+                totalRegexMatches = 0;
+                totalExportedFiles = 0;
 
-            // Load CUE4Parse and export files
-            AbstractFileProvider provider = CreateProvider(config, selectedVersion);
-            Export(provider, config, start);
+                EGame selectedVersion = GetGameVersion(config.Version);
+                Console.WriteLine($"Config: {config.ConfigFileName} (object #{config.ConfigObjectIndex + 1})");
+                Console.WriteLine($"Game: {config.GameTitle}");
+                Console.WriteLine($"Version: {selectedVersion}");
+                Console.WriteLine($"Locale: {config.Lang}");
+                Console.WriteLine($"Paks: {config.PaksDir}");
+                Console.WriteLine($"Output: {config.OutputDir}");
+                Console.WriteLine($"AES key: {config.Aes}");
+                Console.WriteLine($"Log output files: {config.LogOutputs}");
+                Console.WriteLine($"Keep directory structure: {config.KeepDirectoryStructure}");
+                Console.WriteLine($"Include JSONs in PNG paths: {config.IncludeJsonsInPngPaths}");
+                Console.WriteLine($"Create new checkpoint: {config.CreateNewCheckpoint}");
+
+                // Load CUE4Parse and export files
+                AbstractFileProvider provider = CreateProvider(config, selectedVersion);
+                Export(provider, config, start);
+            }
+
+            Console.WriteLine($"Finished in {Elapsed(trueStart, Now(), 1000)} seconds");
         }
-
-        Console.WriteLine($"Finished in {Elapsed(trueStart, Now(), 1000)} seconds");
+        catch (OperationCanceledException)
+        {
+            Console.WriteLine("\nExiting UnrealExporter.");
+        }
     }
 
     public static List<ConfigObj>? LoadConfigFile(string path)
@@ -82,19 +89,148 @@ public class UnrealExporter
         return null;
     }
 
+    public static List<ConfigObj> LoadConfigsFromSelector(string[] args, string[] allConfigFilePaths)
+    {
+        bool[] selectedOptions = new bool[allConfigFilePaths.Length + 1];
+        int currentOption = 0;
+        List<string> gameTitles = [];
+        int longestFileName = 0;
+
+        // Get longest file name for padding purposes
+        // Also check items that were passed in args
+        for (int i = 0; i < allConfigFilePaths.Length; i++)
+        {
+            string fileName = allConfigFilePaths[i].Split(Path.DirectorySeparatorChar).Last();
+            if (fileName.Length > longestFileName)
+            {
+                longestFileName = fileName.Length;
+            }
+
+            // If "bp" was passed as an arg, set "bp.json" to checked by default
+            if (args.Any(arg => arg.Equals(fileName.Split(".").First())))
+            {
+                selectedOptions[i + 1] = true;
+            }
+        }
+
+        List<string> paddedFileNames = [];
+        foreach (string filePath in allConfigFilePaths)
+        {
+            string fileName = filePath.Split(Path.DirectorySeparatorChar).Last();
+            paddedFileNames.Add(fileName.PadRight(longestFileName + 1, ' '));
+        }
+
+        for (int i = 0; i < allConfigFilePaths.Length; i++)
+        {
+            List<ConfigObj>? configObjsInFile = LoadConfigFile(allConfigFilePaths[i]);
+
+            if (configObjsInFile != null)
+            {
+                List<string> gameTitlesInFile = [];
+                foreach (ConfigObj configObj in configObjsInFile)
+                {
+                    gameTitlesInFile.Add(configObj.GameTitle);
+                }
+                gameTitles.Add($"({string.Join(", ", [.. gameTitlesInFile])})");
+            }
+            else
+            {
+                gameTitles.Add("");
+            }
+        }
+
+        Console.WriteLine(gameTitles[0]);
+
+        while (true)
+        {
+            Console.Clear(); // Clear the console screen before re-printing options
+            Console.WriteLine($"{(allConfigFilePaths.Length > 0 ? "Multiple config files detected. " : "")}Select the ones you wish to execute with arrows keys, space to select, enter to confirm, or escape to exit.");
+
+            for (int i = 0; i < selectedOptions.Length; i++)
+            {
+                Console.Write(currentOption == i ? "> " : "  ");
+
+                if (i > 0)
+                {
+                    Console.Write(selectedOptions[i] ? "[x] " : "[ ] ");
+                    Console.WriteLine($"{paddedFileNames[i - 1]} {gameTitles[i - 1]}");
+                }
+                else if (i == 0 && selectedOptions[0])
+                {
+                    Console.WriteLine("Unselect all");
+                }
+                else
+                {
+                    Console.WriteLine("Select all");
+                }
+            }
+
+            var key = Console.ReadKey(true);
+
+            switch (key.Key)
+            {
+                case ConsoleKey.UpArrow:
+                    currentOption = (currentOption - 1 + selectedOptions.Length) % selectedOptions.Length;
+                    break;
+                case ConsoleKey.DownArrow:
+                    currentOption = (currentOption + 1) % selectedOptions.Length;
+                    break;
+                case ConsoleKey.Spacebar:
+                    if (currentOption == 0)
+                    {
+                        for (int i = 0; i < selectedOptions.Length; i++)
+                        {
+                            selectedOptions[i] = !selectedOptions[i];
+                        }
+                    }
+                    else
+                    {
+                        selectedOptions[currentOption] = !selectedOptions[currentOption];
+                    }
+                    break;
+                case ConsoleKey.Enter:
+                    List<string> result = [];
+                    for (int i = 1; i < selectedOptions.Length; i++)
+                    {
+                        if (selectedOptions[i])
+                        {
+                            result.Add(allConfigFilePaths[i - 1].Split(Path.DirectorySeparatorChar).Last().Split(".")[0]);
+                        }
+                    }
+                    Console.WriteLine();
+                    return LoadAllConfigs([.. result]);
+                case ConsoleKey.Escape:
+                    throw new OperationCanceledException();
+            }
+        }
+    }
+
     public static List<ConfigObj> LoadAllConfigs(string[] args)
     {
         List<ConfigObj> allConfigObjs = [];
+        string[] allConfigFilePaths = Directory.GetFiles($"{Directory.GetCurrentDirectory()}\\configs");
 
-        if (args.Length > 0)
+        bool isReleaseMode = false;
+
+        #if !DEBUG
+            isReleaseMode = true;
+        #endif
+
+        if (args.Length > 0 || isReleaseMode)
         {
+            // Show list of config files
+            if (args.Any(arg => arg.Equals("--cl")) || (isReleaseMode && args.Length < 1))
+            {
+                args = args.Where(arg => arg != "--list").ToArray();
+                return LoadConfigsFromSelector(args, allConfigFilePaths);
+            }
+
             int totalConfigFiles = 0;
 
             // Load all files
-            if (args[0].ToLower().Equals("all"))
+            if (args.Any(arg => arg.Equals("all")))
             {
-                string[] filePaths = Directory.GetFiles($"{Directory.GetCurrentDirectory()}\\configs");
-                foreach (var filePath in filePaths)
+                foreach (var filePath in allConfigFilePaths)
                 {
                     List<ConfigObj>? configObjsInFile = LoadConfigFile(filePath);
 
