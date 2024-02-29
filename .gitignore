@@ -5,7 +5,7 @@
 .env
 /test
 **.ckpt
-/configs/**.json
+# /configs/**.json
 !config.json
 desktop.ini
 **.old
