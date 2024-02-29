@@ -321,7 +321,7 @@ public class UnrealExporter
     public static AbstractFileProvider CreateProvider(ConfigObj config, EGame selectedVersion)
     {
         // Load CUE4Parse
-        var provider = new DefaultFileProvider(config.PaksDir, SearchOption.TopDirectoryOnly, true, new VersionContainer(selectedVersion));
+        var provider = new DefaultFileProvider(config.PaksDir, SearchOption.AllDirectories, true, new VersionContainer(selectedVersion));
         provider.Initialize();
 
         // Decrypt
