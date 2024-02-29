@@ -149,7 +149,7 @@ public class UnrealExporter
 
         while (true)
         {
-            // Console.Clear(); // Clear the console screen before re-printing options
+            Console.Clear(); // Clear the console screen before re-printing options
             Console.WriteLine($"{(allConfigFilePaths.Length > 1 ? "Multiple config files detected. Select the ones" : "Select the config files")} you wish to execute with arrows keys, space to select, enter to confirm, or escape to exit.");
 
             for (int i = 0; i < selectedOptions.Length; i++)
