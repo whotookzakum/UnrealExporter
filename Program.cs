@@ -577,7 +577,7 @@ public class UnrealExporter
         }
         else
         {
-            Console.WriteLine($"No checkpoint file selected. Skipping...");
+            Console.WriteLine($"No checkpoint file selected. Ignoring...");
             return [];
         }
     }
