@@ -12,10 +12,12 @@ using SkiaSharp;
 using CUE4Parse.UE4.Localization;
 using System.Collections.Concurrent;
 using CUE4Parse.MappingsProvider;
+using JSBeautifyLib;
 
 namespace UnrealExporter;
 
 // TODO: CLI selection for selecting a checkpoint "Checkpoint files found. Select the one you would like to use."
+// TODO: if outputType is unspecified, default to fileType
 
 public class UnrealExporter
 {
@@ -420,6 +422,7 @@ public class UnrealExporter
                 {
                     switch (fileType)
                     {
+                        // Referencing CUE4ParseViewModel.cs from Fmodel source code
                         case "uasset":
                         case "umap":
                             {
@@ -488,10 +491,21 @@ public class UnrealExporter
                                 }
                                 break;
                             }
-                            // case "js": {
-                            //     if
-                            //     break;
-                            // }
+                        case "js":
+                            {
+                                if (outputType == fileType && provider.TrySaveAsset(file.Value.Path, out var data))
+                                {
+                                    if (config.LogOutputs) Console.WriteLine("=> " + outputPath + ".json");
+                                    using var stream = new MemoryStream(data) { Position = 0 };
+                                    using var reader = new StreamReader(stream);
+                                    JSBeautifyOptions options = new() { };
+                                    JSBeautify beautifier = new(reader.ReadToEnd(), options);
+                                    if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
+                                    File.WriteAllText(outputPath + ".js", beautifier.GetResult());
+                                    Interlocked.Increment(ref totalExportedFiles);
+                                }
+                                break;
+                            }
                     }
                 }
                 catch (AggregateException)

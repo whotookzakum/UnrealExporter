@@ -21,6 +21,7 @@ When listing an export file path, specify the desired output type at the end, su
 - [x] uasset (json, png)
 - [x] umap (json)
 - [x] locres (json)
+- [x] js (js)
 - [ ] everything else
 
 ## [Usage](#usage)
