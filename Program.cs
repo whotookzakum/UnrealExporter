@@ -15,9 +15,11 @@ using CUE4Parse.MappingsProvider;
 
 namespace UnrealExporter;
 
+// TODO: CLI selection for selecting a checkpoint "Checkpoint files found. Select the one you would like to use."
+
 public class UnrealExporter
 {
-    private static int totalFiles = 0;
+    private static int totalChangedFiles = 0;
     private static int totalRegexMatches = 0;
     private static int totalExportedFiles = 0;
     private static bool useCheckpoint = false;
@@ -33,7 +35,7 @@ public class UnrealExporter
             foreach (ConfigObj config in configs)
             {
                 double start = Now();
-                totalFiles = 0;
+                totalChangedFiles = 0;
                 totalRegexMatches = 0;
                 totalExportedFiles = 0;
 
@@ -45,9 +47,7 @@ public class UnrealExporter
                 Console.WriteLine($"Paks: {config.PaksDir}");
                 Console.WriteLine($"Output: {config.OutputDir}");
                 Console.WriteLine($"AES key: {config.Aes}");
-                Console.WriteLine($"Log output files: {config.LogOutputs}");
                 Console.WriteLine($"Keep directory structure: {config.KeepDirectoryStructure}");
-                Console.WriteLine($"Include JSONs in PNG paths: {config.IncludeJsonsInPngPaths}");
                 Console.WriteLine($"Create new checkpoint: {config.CreateNewCheckpoint}");
 
                 // Load CUE4Parse and export files
@@ -55,7 +55,7 @@ public class UnrealExporter
                 Export(provider, config, start);
             }
 
-            Console.WriteLine($"Finished in {Elapsed(trueStart, Now(), 1000)} seconds");
+            Console.WriteLine($"UnrealExporter finished in {Elapsed(trueStart, Now(), 1000)} seconds");
         }
         catch (OperationCanceledException)
         {
@@ -363,57 +363,68 @@ public class UnrealExporter
 
         Console.WriteLine($"Scanning {provider.Files.Count} files...{Environment.NewLine}");
 
-        // Loop through all files and export the ones that match any of the ExportJsonPaths (converted to regex)
+        // Loop through all files and export the ones that match any of the config.export paths (converted to regex)
         Parallel.ForEach(provider.Files, file =>
         {
             // "Hotta/Content/Resources/UI/Activity/Activity/DT_Activityquest_Balance.uasset"
             // file.Value.Path
 
             // "Hotta\Content\Resources\UI\Activity\Activity"
-            var internalFilePath = Path.GetDirectoryName(file.Value.Path);
-
-            // "D:\UnrealExporter\output\Hotta\Content\Resources\UI\Activity\Activity"
-            var outputDir = config.KeepDirectoryStructure ?
-                Path.GetFullPath(config.OutputDir) + Path.DirectorySeparatorChar + internalFilePath
-                : Path.GetFullPath(config.OutputDir);
+            var fileDir = Path.GetDirectoryName(file.Value.Path);
 
             // "DT_Activityquest_Balance"
             var fileName = Path.GetFileNameWithoutExtension(file.Value.Path);
 
+            // "Hotta\Content\Resources\UI\Activity\Activity\DT_Activityquest_Balance"
+            var filePath = fileDir + Path.DirectorySeparatorChar + fileName;
+
+            // "D:\UnrealExporter\output\Hotta\Content\Resources\UI\Activity\Activity"
+            var outputDir = config.KeepDirectoryStructure ?
+                Path.GetFullPath(config.OutputDir) + Path.DirectorySeparatorChar + fileDir
+                : Path.GetFullPath(config.OutputDir);
+
             // "D:\UnrealExporter\output\Hotta\Content\Resources\UI\Activity\Activity\DT_Activityquest_Balance"
             var outputPath = outputDir + Path.DirectorySeparatorChar + fileName;
 
-            // ".uasset"
-            var fileExtension = file.Value.Path.SubstringAfterLast('.').ToLower();
+            string regexMatch =
+                config.Export
+                .FirstOrDefault(path => new Regex("^" + path[..path.LastIndexOf(':')] + "$", RegexOptions.IgnoreCase)
+                .IsMatch(file.Value.Path), "");
 
-            bool isJsonExport = config.ExportJsonPaths.Any(path => new Regex("^" + path + "$", RegexOptions.IgnoreCase).IsMatch(file.Value.Path));
-            bool isPngExport = config.ExportPngPaths.Any(path => new Regex("^" + path + "$", RegexOptions.IgnoreCase).IsMatch(file.Value.Path));
-            bool isExcludedPath = config.ExcludedPaths.Any(path => new Regex("^" + path + "$", RegexOptions.IgnoreCase).IsMatch(file.Value.Path));
-            bool exportThisFile = true;
+            bool isExclude =
+                config.Exclude
+                .Any(path => new Regex("^" + path + "$", RegexOptions.IgnoreCase)
+                .IsMatch(file.Value.Path));
 
-            // If checkpoint is specified, skip unchanged files (same file size as in the checkpoint)
+            bool isChanged = true;
+
+            // If checkpoint is specified, skip files whose sizes are the same as in the checkpoint
             if (useCheckpoint && loadedCheckpoint.TryGetValue(file.Value.Path, out long fileSize))
             {
-                exportThisFile = fileSize != file.Value.Size;
+                isChanged = fileSize != file.Value.Size;
+                if (isChanged) Interlocked.Increment(ref totalChangedFiles);
             }
 
-            if (config.CreateNewCheckpoint)
-            {
-                newCheckpointDict.TryAdd(file.Value.Path, file.Value.Size);
-            }
+            if (config.CreateNewCheckpoint) newCheckpointDict.TryAdd(file.Value.Path, file.Value.Size);
 
-            if (!isExcludedPath && (isJsonExport || isPngExport) && exportThisFile)
+            if (regexMatch.Length > 0 && !isExclude && isChanged)
             {
+                // "uasset"
+                var fileType = file.Value.Path.SubstringAfterLast('.').ToLower();
+
+                // "json" etc.
+                var outputType = regexMatch.SubstringAfterLast(':').ToLower();
+
                 try
                 {
-                    switch (fileExtension)
+                    switch (fileType)
                     {
                         case "uasset":
                         case "umap":
                             {
                                 var allObjects = provider.LoadAllObjects(file.Value.Path);
 
-                                if (isPngExport)
+                                if (outputType == "png")
                                 {
                                     foreach (var obj in allObjects)
                                     {
@@ -440,32 +451,18 @@ public class UnrealExporter
                                             }
                                             else
                                             {
-                                                Console.WriteLine($"WARNING: The following texture is not a valid image bitmap: {file.Value.Path}");
-
-                                                if (config.IncludeJsonsInPngPaths)
-                                                {
-                                                    // Serialize to JSON, then write to file
-                                                    if (config.LogOutputs) Console.WriteLine("=> " + outputPath + ".json");
-                                                    var json = JsonConvert.SerializeObject(allObjects, Formatting.Indented);
-                                                    if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
-                                                    File.WriteAllText(outputPath + ".json", json);
-                                                    Interlocked.Increment(ref totalExportedFiles);
-                                                }
+                                                Console.WriteLine($"ERROR: Failed to export {file.Value.Path} (not a valid image bitmap).");
                                             }
                                         }
-                                        else if (config.IncludeJsonsInPngPaths)
+                                        else
                                         {
-                                            // Serialize to JSON, then write to file
-                                            if (config.LogOutputs) Console.WriteLine("=> " + outputPath + ".json");
-                                            var json = JsonConvert.SerializeObject(allObjects, Formatting.Indented);
-                                            if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
-                                            File.WriteAllText(outputPath + ".json", json);
-                                            Interlocked.Increment(ref totalExportedFiles);
+                                            // Not necessarily an error
+                                            // Console.WriteLine($"ERROR: Failed to export {file.Value.Path} (object is not of type UTexture2D).");
                                         }
                                     }
                                 }
 
-                                else if (isJsonExport)
+                                else if (outputType == "json")
                                 {
                                     // Serialize to JSON, then write to file
                                     if (config.LogOutputs) Console.WriteLine("=> " + outputPath + ".json");
@@ -479,7 +476,7 @@ public class UnrealExporter
                             }
                         case "locres":
                             {
-                                if (isJsonExport && provider.TryCreateReader(file.Value.Path, out var archive))
+                                if (outputType == "json" && provider.TryCreateReader(file.Value.Path, out var archive))
                                 {
                                     if (config.LogOutputs) Console.WriteLine("=> " + outputPath + ".json");
                                     var locres = new FTextLocalizationResource(archive);
@@ -490,6 +487,10 @@ public class UnrealExporter
                                 }
                                 break;
                             }
+                            // case "js": {
+                            //     if
+                            //     break;
+                            // }
                     }
                 }
                 catch (AggregateException)
@@ -499,26 +500,15 @@ public class UnrealExporter
 
                 Interlocked.Increment(ref totalRegexMatches);
             }
-
-            if (exportThisFile) Interlocked.Increment(ref totalFiles);
         });
 
         // Create checkpoint
-        if (config.CreateNewCheckpoint)
-        {
-            CreateCheckpoint(newCheckpointDict, config);
-        }
+        if (config.CreateNewCheckpoint) CreateCheckpoint(newCheckpointDict, config);
 
         // Log results
         if (config.LogOutputs && totalExportedFiles > 0 && !config.CreateNewCheckpoint) Console.WriteLine();
-        if (useCheckpoint)
-        {
-            Console.WriteLine($"Regex matched {totalRegexMatches} out of {totalFiles} changed files ({provider.Files.Count - totalFiles} unchanged)");
-        }
-        else
-        {
-            Console.WriteLine($"Regex matched {totalRegexMatches} out of {totalFiles} total files");
-        }
+        Console.WriteLine($"Scanned {provider.Files.Count} files{(useCheckpoint ? $" ({totalChangedFiles} changed, {provider.Files.Count - totalChangedFiles} unchanged)" : "")}");
+        Console.WriteLine($"Regex matched {totalRegexMatches} files {(totalRegexMatches > totalExportedFiles ? $"(skipped {totalRegexMatches - totalExportedFiles} incompatible file types)" : "")}");
         Console.WriteLine($"Exported {totalExportedFiles} files in {Elapsed(start, Now(), 1000)} seconds");
         Console.WriteLine();
     }
@@ -616,13 +606,11 @@ public class ConfigObj
     public required string PaksDir { get; set; }
     public required string OutputDir { get; set; }
     public required string Aes { get; set; }
-    public bool LogOutputs { get; set; }
+    public required bool LogOutputs { get; set; }
     public required bool KeepDirectoryStructure { get; set; }
     public string? Lang { get; set; }
-    public required bool IncludeJsonsInPngPaths { get; set; }
     public bool CreateNewCheckpoint { get; set; }
     public string? UseCheckpointFile { get; set; }
-    public required List<string> ExportJsonPaths { get; set; }
-    public required List<string> ExportPngPaths { get; set; }
-    public required List<string> ExcludedPaths { get; set; }
+    public required List<string> Export { get; set; }
+    public required List<string> Exclude { get; set; }
 }

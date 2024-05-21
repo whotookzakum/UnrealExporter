@@ -17,9 +17,10 @@ This project can be used as-is or as a reference, since CUE4Parse documentation 
 - [ ] Automatic binary releases (GitHub actions)
 
 ### [Supported file types](#supported-file-types)
-- [x] uasset (to JSON or PNG)
-- [x] umap (to JSON)
-- [x] locres (to JSON)
+When listing an export file path, specify the desired output type at the end, such as `:json`.
+- [x] uasset (json, png)
+- [x] umap (json)
+- [x] locres (json)
 - [ ] everything else
 
 ## [Usage](#usage)
@@ -61,15 +62,13 @@ Example config files can be found in `/configs/examples`. The excluded paths in 
 | logOutputs             | `bool`          | If set to `true`, every exported file's path will be logged. If set to `false`, these logs are skipped. Note: The logging occurs **before** attempting to export the file, so if the program crashes, check the last few logged files (it will not always be the last file if you have multithreading enabled). | 
 | keepDirectoryStructure | `bool`          | If set to `true`, folders will be made matching those found in the .paks. If set to `false`, all files will be output at the root level of the `outputDir`.     |
 | lang                   | `string`        | Language that strings should be output in. [Supported languages](https://github.com/FabianFG/CUE4Parse/blob/master/CUE4Parse/UE4/Versions/ELanguage.cs). Useful for specifying the target language for localized resources. Will only work if the game supports the specified localization. Defaults to `English`. |
-| includeJsonsInPngPaths | `bool`          | If set to `true`, `exportPngPaths` will include objects that cannot be converted into images as JSON, such as DataTables and invalid bitmaps. If set to `false`, `exportPngPaths` will skip objects that cannot be converted to images. Useful for debugging image exports. |
 | createNewCheckpoint    | `bool`          | If set to `true`, will output a new checkpoint file in the `/checkpoints` directory. If set to `false`, will not create a checkpoint file. More details about checkpoints below. |
 | useCheckpointFile      | `string`        | A __relative path__ to a checkpoint file in the `/checkpoints` directory, i.e. `/checkpoints/Tower of Fantasy 02-26-2024 06-08.ckpt`. If set to `latest`, the program will look for the latest checkpoint in the `/checkpoints` folder that contains the `gameTitle` provided, i.e, between `/checkpoints/Palworld 02-26-2024 00-00.ckpt` and `/checkpoints/Palworld 05-30-2024 00-00.ckpt`, the latter will be used (will not work if you changed the file name structure). More details about checkpoints below. |
-| exportJsonPaths        | `Array(string)` | A list of files to export as JSON. Supports regex. |
-| exportPngPaths         | `Array(string)` | A list of files to export as PNG. Supports regex. |
-| excludedFilePaths      | `Array(string)` | A list of files to skip exporting. Supports regex. Useful for avoiding files that crash CUE4Parse. Note: the program will try to automatically skip files that cannot be parsed by CUE4Parse, however files causing issues such as segmentation faults and heap corruption will not be skipped as they are not technically a failed parse, so they will need to be added to the excluded paths. |
+| export        | `Array(string)` | A list of files to export. Supports regex. Add a colon with the desired output type at the end, such as `:json` or `:png` (see [supported file types](#supported-file-types)). |
+| exclude      | `Array(string)` | A list of files to skip exporting. Supports regex. Useful for avoiding files that crash CUE4Parse. Note: the program will try to automatically skip files that cannot be parsed by CUE4Parse, however files causing issues such as segmentation faults and heap corruption will not be skipped as they are not technically a failed parse, so they will need to be added to the excluded paths. |
 
 > [!NOTE]
-> File paths for `exportJsonPaths`, `exportPngPaths`, and `excludedFilePaths` reside **inside the game files** (virtual file system). Use [FModel](https://github.com/4sval/FModel) to verify the paths that you wish to export. For example, Tower of Fantasy starts at `Hotta/Content/...`
+> File paths for `export` and `exclude` reside **inside the game files** (virtual file system). Use [FModel](https://github.com/4sval/FModel) to verify the paths that you wish to export. For example, Tower of Fantasy starts at `Hotta/Content/...`
 
 I recommend specifying file extensions to avoid getting useless/unexportable files in your output. For example, you may only need a `.uasset` to be exported as JSON, but if you don't specify the file extension, it can export other files such as `.umap`, `.ubulk`, etc. which may be undesired.
 
@@ -83,8 +82,8 @@ Create multiple JSONs in the `configs` folder, naming them something easy for yo
 | `dotnet run`                   | `config.json`                                                       |
 | `dotnet run all`               | Every JSON directly in the `/configs` folder                        |
 | `dotnet run blue-protocol tof` | `blue-protocol.json`, `tof.json`                                    |
-| `dotnet run --list`              | Lists all configs found in the `/configs` folder                    |
-| `dotnet run --list bp tof`       | Lists all configs, with `bp.json` and `tof.json` checked by default |
+| `dotnet run --list`            | Lists all configs found in the `/configs` folder                    |
+| `dotnet run --list bp tof`     | Lists all configs, with `bp.json` and `tof.json` checked by default |
 
 #### [Config List](#config-list)
 If you pass the config list flag `--list`, the program will prompt you to select the configs you wish to use, listing the `gameTitle` for each object in the config. **This is enabled by default in the binary executable** unless an argument is passed.
@@ -112,7 +111,7 @@ If a valid checkpoint is provided, the program will only export files that have 
 > If you want to create a checkpoint but don't want to re-export existing files, set `"createNewCheckpoint": true"` and change the export paths to empty arrays.
 
 ## [Supported Games](#supported-games)
-By default, all games supported by FModel should technically be supported by UnrealExporter, as both use CUE4Parse under the hood. You can find working configs for games that have been tested and confirmed to be working in the `/configs/examples` folder. Mileage may vary depending on the files you wish to export, so check for any error messages and exclude paths accordingly.
+By default, all games supported by FModel should technically be supported by UnrealExporter, as both use CUE4Parse under the hood. You can find working configs for games that have been tested and confirmed to be working in the `/configs/examples` folder. Mileage may vary depending on the files you wish to export, so check for any error messages and exclude paths accordingly. You can also open an issue to request support for other file types.
 
 ### How to fix no files loading due to missing mapping file
 If you are loading a game like Palworld, you will need the correct `.usmap` file so that the game files will correctly load into CUE4Parse. If your game's mapping file is not already provided in the `mappings` folder, follow the instructions below to obtain the file.
