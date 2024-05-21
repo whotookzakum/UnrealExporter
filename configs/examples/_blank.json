@@ -8,11 +8,9 @@
         "aes": "",
         "logOutputs": true,
         "keepDirectoryStructure": true,
-        "includeJsonsInPngPaths": false,
         "createNewCheckpoint": false,
         "useCheckpointFile": "",
-        "exportJsonPaths": [],
-        "exportPngPaths": [],
-        "excludedPaths": []
+        "export": [],
+        "exclude": []
     }
 ]

@@ -8,23 +8,20 @@
         "aes": "0x6E6B325B02B821BD46AF6B62B1E929DC89957DC6F8AA78210D5316798B7508F8",
         "logOutputs": true,
         "keepDirectoryStructure": true,
-        "includeJsonsInPngPaths": false,
         "createNewCheckpoint": false,
         "useCheckpointFile": "",
-        "exportJsonPaths": [
-            "Hotta/Content/Resources/CoreBlueprints/DataTable.*\\.uasset",
-            "Hotta/Content/Resources/Dialogues/Quests/.*\\.uasset",
-            "Hotta/Content/Resources/Text/.*\\.uasset",
-            "Hotta/Content/Localization/Game/.*\\.uasset",
-            "Hotta/Content/Resources/Abilities/Buff/Wormhole/NewBuff/.*\\.uasset"
+        "export": [
+            "Hotta/Content/Resources/CoreBlueprints/DataTable.*\\.uasset:json",
+            "Hotta/Content/Resources/Dialogues/Quests/.*\\.uasset:json",
+            "Hotta/Content/Resources/Text/.*\\.uasset:json",
+            "Hotta/Content/Localization/Game/.*\\.uasset:json",
+            "Hotta/Content/Resources/Abilities/Buff/Wormhole/NewBuff/.*\\.uasset:json",
+            "Hotta/Content/L10N/.*\\.uasset:png",
+            "Hotta/Content/ResourcesOverSea/.*\\.uasset:png",
+            "Hotta/Content/Resources/UI/.*\\.uasset:png",
+            "Hotta/Content/Resources/Icon/.*\\.uasset:png"
         ],
-        "exportPngPaths": [
-            "Hotta/Content/L10N/.*\\.uasset",
-            "Hotta/Content/ResourcesOverSea/.*\\.uasset",
-            "Hotta/Content/Resources/UI/.*\\.uasset",
-            "Hotta/Content/Resources/Icon/.*\\.uasset"
-        ],
-        "excludedPaths": [
+        "exclude": [
             "Hotta/Content/Resources/CoreBlueprints/DataTable/ImitationElementEffectConfigDataTable.uasset",
             "Hotta/Content/Resources/CoreBlueprints/DataTable/ImitationChatNodeDataTable.uasset",
             "Hotta/Content/Resources/CoreBlueprints/DataTable/DamageFloatiesTemplatePathData.uasset",

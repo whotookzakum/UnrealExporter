@@ -8,17 +8,14 @@
         "aes": "0x81D17527F7B00BB2FE1E61CBCBA5D340FAD33885C375958F07AF4C64B01B39E4",
         "logOutputs": true,
         "keepDirectoryStructure": true,
-        "includeJsonsInPngPaths": false,
         "createNewCheckpoint": true,
         "useCheckpointFile": "",
-        "exportJsonPaths": [
-            "KartDrift/Content/DataTable/.*\\.uasset"
+        "export": [
+            "KartDrift/Content/DataTable/.*\\.uasset:json",
+            "KartDrift/Content/UI/.*\\.uasset:png",
+            "KartDrift/Content/UI_Common/.*\\.uasset:png",
+            "KartDrift/Content/UI_M/.*\\.uasset:png"
         ],
-        "exportPngPaths": [
-            "KartDrift/Content/UI/.*\\.uasset",
-            "KartDrift/Content/UI_Common/.*\\.uasset",
-            "KartDrift/Content/UI_M/.*\\.uasset"
-        ],
-        "excludedPaths": []
+        "exclude": []
     }
 ]

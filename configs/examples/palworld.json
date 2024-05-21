@@ -8,19 +8,16 @@
         "aes": "",
         "logOutputs": true,
         "keepDirectoryStructure": true,
-        "includeJsonsInPngPaths": false,
         "createNewCheckpoint": false,
         "useCheckpointFile": "",
-        "exportJsonPaths": [
-            "Pal/Content/Pal/Blueprint/Character/.*\\.uasset",
-            "Pal/Content/Pal/DataAsset/.*\\.uasset",
-            "Pal/Content/Pal/DataTable/.*\\.uasset",
-            "Pal/Content/Pal/Maps/.*\\.uasset"
+        "export": [
+            "Pal/Content/Pal/Blueprint/Character/.*\\.uasset:json",
+            "Pal/Content/Pal/DataAsset/.*\\.uasset:json",
+            "Pal/Content/Pal/DataTable/.*\\.uasset:json",
+            "Pal/Content/Pal/Maps/.*\\.uasset:json",
+            "Pal/Content/Pal/Texture/.*\\.uasset:png"
         ],
-        "exportPngPaths": [
-            "Pal/Content/Pal/Texture/.*\\.uasset"
-        ],
-        "excludedPaths": [
+        "exclude": [
             "Pal/Content/Pal/Blueprint/MapObject/.*",
             "Pal/Content/Pal/Blueprint/UI/UserInterface/MainMenu/.*"
         ]

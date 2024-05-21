@@ -47,6 +47,7 @@ public class UnrealExporter
                 Console.WriteLine($"Paks: {config.PaksDir}");
                 Console.WriteLine($"Output: {config.OutputDir}");
                 Console.WriteLine($"AES key: {config.Aes}");
+                Console.WriteLine($"Log outputs: {config.LogOutputs}");
                 Console.WriteLine($"Keep directory structure: {config.KeepDirectoryStructure}");
                 Console.WriteLine($"Create new checkpoint: {config.CreateNewCheckpoint}");
 
