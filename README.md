@@ -18,10 +18,11 @@ This project can be used as-is or as a reference, since CUE4Parse documentation 
 
 ### [Supported file types](#supported-file-types)
 When listing an export file path, specify the desired output type at the end, such as `:json`.
-- [x] uasset (json, png)
-- [x] umap (json)
-- [x] locres (json)
-- [x] js (js)
+- [x] uasset (as json, png)
+- [x] umap (as json)
+- [x] locres (as json)
+- [x] js (as js)
+- [x] db (as db)
 - [ ] everything else
 
 ## [Usage](#usage)

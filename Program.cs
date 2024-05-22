@@ -495,13 +495,26 @@ public class UnrealExporter
                             {
                                 if (outputType == fileType && provider.TrySaveAsset(file.Value.Path, out var data))
                                 {
-                                    if (config.LogOutputs) Console.WriteLine("=> " + outputPath + ".json");
+                                    if (config.LogOutputs) Console.WriteLine("=> " + outputPath + "." + outputType);
                                     using var stream = new MemoryStream(data) { Position = 0 };
                                     using var reader = new StreamReader(stream);
                                     JSBeautifyOptions options = new() { };
                                     JSBeautify beautifier = new(reader.ReadToEnd(), options);
                                     if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
                                     File.WriteAllText(outputPath + ".js", beautifier.GetResult());
+                                    Interlocked.Increment(ref totalExportedFiles);
+                                }
+                                break;
+                            }
+                        case "db":
+                            {
+                                if (outputType == fileType && provider.TrySaveAsset(file.Value.Path, out var data))
+                                {
+                                    if (config.LogOutputs) Console.WriteLine("=> " + outputPath + "." + outputType);
+                                    using var stream = new MemoryStream(data) { Position = 0 };
+                                    using var reader = new StreamReader(stream);
+                                    if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
+                                    File.WriteAllBytes(outputPath + ".db", data);
                                     Interlocked.Increment(ref totalExportedFiles);
                                 }
                                 break;
