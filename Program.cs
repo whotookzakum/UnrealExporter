@@ -476,6 +476,41 @@ public class UnrealExporter
                                     Interlocked.Increment(ref totalExportedFiles);
                                 }
 
+                                // Referenced from FModel's ExportData(). uexp is tied to the uasset file.
+                                // https://github.com/4sval/FModel/blob/master/FModel/ViewModels/CUE4ParseViewModel.cs#L928
+                                // Possible refactor to include TryGetValue
+                                // https://github.com/FabianFG/CUE4Parse/blob/b3550db731303a6f383ca2b4f61737ca870deef2/CUE4Parse/FileProvider/AbstractFileProvider.cs#L562
+                                else if (outputType == "uasset")
+                                {
+                                    if (provider.TrySavePackage(file.Value, out var assets))
+                                    {
+                                        Parallel.ForEach(assets, kvp =>
+                                        {
+                                            if (config.LogOutputs) Console.WriteLine("=> " + outputPath + "." + kvp.Key.SubstringAfterLast('.'));
+                                            if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
+                                            File.WriteAllBytes(outputPath + "." + kvp.Key.SubstringAfterLast('.'), kvp.Value);
+                                            Interlocked.Increment(ref totalExportedFiles);
+                                        });
+                                    }
+                                }
+
+                                // else if (outputType == "uexp")
+                                // {
+                                //     if (config.LogOutputs) Console.WriteLine("=> " + outputPath + ".uexp");
+                                //     if (provider.TrySavePackage(file.Value, out var assets))
+                                //     {
+                                //         Parallel.ForEach(assets, kvp =>
+                                //         {
+                                //             lock (new object())
+                                //             {
+                                //                 if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
+                                //                 File.WriteAllBytes(outputPath + ".uexp", kvp.Value);
+                                //             }
+                                //         });
+                                //     }
+                                //     Interlocked.Increment(ref totalExportedFiles);
+                                // }
+
                                 break;
                             }
                         case "locres":
