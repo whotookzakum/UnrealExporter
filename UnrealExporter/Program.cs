@@ -348,6 +348,16 @@ public class UnrealExporter
             provider.LoadLocalization(ELanguage.English);
         }
 
+        // TEMP (need to fix patchProvider for utoc/ucas support). For now it's not guaranteed that the patch paks will be reconciled correctly.
+        string pathToMapping = $"{Directory.GetCurrentDirectory()}\\mappings\\{config.GameTitle}.usmap";
+        if (File.Exists(pathToMapping))
+        {
+            Console.WriteLine($"Using mapping file: {pathToMapping}");
+            provider.MappingsContainer = new FileUsmapTypeMappingsProvider(pathToMapping);
+        }
+        return provider;
+
+
         // Load files into PatchFileProvider so the patch uassets override original uassets
         var patchProvider = new PatchFileProvider();
         patchProvider.Load(provider);
