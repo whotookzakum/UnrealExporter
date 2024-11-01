@@ -103,7 +103,7 @@ Multiple config files detected. Select the ones you wish to execute with arrows 
 ## [Checkpoints](#checkpoints)
 Similar to FModel's `.fbkp` system, checkpoints allow you to export only new/modified files and skip unchanged files, reducing the amount of time needed to export. 
 
-A `.ckpt` file is a JSON that maps each file's path to its size, i.e. `"Hotta/Content/Resources/FB/FB_Gulan/Warning.uexp": 3513`. They are outputted to the `/checkpoints` folder by default, and named via `gameTitle` and timestamp.
+A `.ckpt` file is a JSON that maps each file's path to its size, i.e. `"Hotta/Content/Resources/FB/FB_Gulan/Warning.uexp": 3513`. They are outputted to the `/checkpoints` folder by default, and named via `gameTitle` and a timestamp.
 
 If a valid checkpoint is provided, the program will only export files that have different file sizes than the one in the checkpoint (modified files), or do not have an entry in the checkpoint (new files).
 
@@ -118,21 +118,19 @@ By default, all games supported by FModel should technically be supported by Unr
 ### How to fix no files loading due to missing mapping file
 If you are loading a game like Palworld, you will need the correct `.usmap` file so that the game files will correctly load into CUE4Parse. If your game's mapping file is not already provided in the `mappings` folder, follow the instructions below to obtain the file.
 
-The following instructions are a trimmed version of [this message](https://discord.com/channels/505994577942151180/1196354583040118824/1198468327308271698) by [rin](https://github.com/rinjugatla).
-
-1. Install [Unreal Engine 4/5 Scripting System](https://github.com/UE4SS-RE/RE-UE4SS)
-2. Modify the configuration file. `ConsoleEnabled` can be 0 or 1.
-```
+1. Download the latest release of [UE4SS](https://github.com/UE4SS-RE/RE-UE4SS) and extract the files to the same location as your game's `-Win64-Shipping.exe` file.
+2. Modify the following sections in `UE4SS-settings.ini` 
+```diff
 [Debug]
-ConsoleEnabled = 0
-GuiConsoleEnabled = 1
-GuiConsoleVisible = 1
++ GuiConsoleEnabled = 1
++ GuiConsoleVisible = 1
+...
++ GraphicsAPI = dx11
 ```
-3. Launch the game
-4. Output mapping file from the UE4SS Debugging Tool > Dumper tab. The file will be located alongside the game files in `.../Binaries/Win64/Mappings.usmap`.  
-Continue reading the [original post](https://discord.com/channels/505994577942151180/1196354583040118824/1198468327308271698) for instructions (with images!) on how to load the `.usmap` file in FModel.
+3. Launch the game.
+4. In the UE4SS GUI, click on the Dumper tab and output the usmap file. It'll be in the same location (`.../Binaries/Win64/Mappings.usmap`). This file can be used with FModel if needed.
 5. Copy or move the `.usmap` file to UnrealExporter's `mappings` folder
-6. Rename the file to match the `gameTitle` inside of the config file. For example, if `"gameTitle": "MyFunGame"`, name the file `MyFunGame.usmap`.
+6. Rename the file to match `gameTitle` from inside your `config.json`. For example, if `"gameTitle": "MyFunGame"`, rename the file `MyFunGame.usmap`.
 
 The exporter should now be able to detect the game files.
 
