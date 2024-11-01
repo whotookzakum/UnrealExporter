@@ -1,0 +1,11 @@
+/UnrealExporter/bin
+/UnrealExporter/obj
+/Content
+/output
+.env
+/test
+**.ckpt
+/configs/**.json
+!config.json
+desktop.ini
+**.old

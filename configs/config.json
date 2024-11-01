@@ -1,0 +1,16 @@
+[
+    {
+        "gameTitle": "",
+        "version": "",
+        "lang": "English",
+        "paksDir": "",
+        "outputDir": "./output",
+        "aes": "",
+        "logOutputs": true,
+        "keepDirectoryStructure": true,
+        "createNewCheckpoint": false,
+        "useCheckpointFile": "",
+        "export": [],
+        "exclude": []
+    }
+]
