@@ -1,20 +1,50 @@
+using CUE4Parse.Encryption.Aes;
 using CUE4Parse.FileProvider;
 using CUE4Parse.FileProvider.Objects;
 using CUE4Parse.FileProvider.Vfs;
+using CUE4Parse.UE4.IO;
 using CUE4Parse.UE4.IO.Objects;
+using CUE4Parse.UE4.Objects.Core.Misc;
+using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.VirtualFileSystem;
 
 namespace UnrealExporter;
 
-public class PatchFileProvider : AbstractFileProvider
+public class PatchFileProvider : AbstractFileProvider, IVfsFileProvider
 {
     private readonly FileProviderDictionary _files = new(true);
 
     public override IReadOnlyDictionary<string, GameFile> Files => _files;
     public override IReadOnlyDictionary<FPackageId, GameFile> FilesById => _files.byId;
+    public IoGlobalData? GlobalData { get; set; }
+
+    public IReadOnlyCollection<IAesVfsReader> UnloadedVfs => throw new NotImplementedException();
+
+    public IReadOnlyCollection<IAesVfsReader> MountedVfs => throw new NotImplementedException();
+
+    public IReadOnlyDictionary<FGuid, FAesKey> Keys => throw new NotImplementedException();
+
+    public IReadOnlyCollection<FGuid> RequiredKeys => throw new NotImplementedException();
+
+    public IAesVfsReader.CustomEncryptionDelegate? CustomEncryption { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    public event EventHandler<int>? VfsRegistered;
+    public event EventHandler<int>? VfsMounted;
+    public event EventHandler<int>? VfsUnmounted;
+
+    public void Dispose()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Initialize()
+    {
+        throw new NotImplementedException();
+    }
 
     public void Load(AbstractVfsFileProvider provider)
     {
+        GlobalData = provider.GlobalData;
         //var vfsList = new List<IAesVfsReader>();
         var vfsList = new Dictionary<int, List<IAesVfsReader>>();
         vfsList[-1] = new List<IAesVfsReader>();
@@ -49,4 +79,50 @@ public class PatchFileProvider : AbstractFileProvider
 
         _files.AddFiles(files);
     }
+
+    public int Mount()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<int> MountAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void RegisterVfs(string file)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void RegisterVfs(FileInfo file)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void RegisterVfs(string file, Stream[] stream, Func<string, FArchive>? openContainerStreamFunc = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public int SubmitKey(FGuid guid, FAesKey key)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<int> SubmitKeyAsync(FGuid guid, FAesKey key)
+    {
+        throw new NotImplementedException();
+    }
+
+    public int SubmitKeys(IEnumerable<KeyValuePair<FGuid, FAesKey>> keys)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<int> SubmitKeysAsync(IEnumerable<KeyValuePair<FGuid, FAesKey>> keys)
+    {
+        throw new NotImplementedException();
+    }
+
 }

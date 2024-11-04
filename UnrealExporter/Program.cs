@@ -355,8 +355,6 @@ public class UnrealExporter
             Console.WriteLine($"Using mapping file: {pathToMapping}");
             provider.MappingsContainer = new FileUsmapTypeMappingsProvider(pathToMapping);
         }
-        return provider;
-
 
         // Load files into PatchFileProvider so the patch uassets override original uassets
         var patchProvider = new PatchFileProvider();
