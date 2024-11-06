@@ -33,8 +33,9 @@ public class UnrealExporter
     {
         double trueStart = Now();
 
-        // Initialize Oodle (from FModel's InitOodle())
-        OodleHelper.Initialize("./oo2core_9_win64.dll");
+        // Initialize packages (from FModel's InitOodle())
+        InitOodle();
+        InitZlib();
 
         try
         {
@@ -74,6 +75,32 @@ public class UnrealExporter
         {
             Console.WriteLine($"ERROR: no config files found.");
         }
+    }
+
+    public static async ValueTask InitOodle()
+    {
+        var oodlePath = Path.Combine(".", OodleHelper.OODLE_DLL_NAME);
+        if (File.Exists(OodleHelper.OODLE_DLL_NAME))
+        {
+            File.Move(OodleHelper.OODLE_DLL_NAME, oodlePath, true);
+        }
+        else if (!File.Exists(oodlePath))
+        {
+            await OodleHelper.DownloadOodleDllAsync(oodlePath);
+        }
+
+        OodleHelper.Initialize(oodlePath);
+    }
+
+    public static async ValueTask InitZlib()
+    {
+        var zlibPath = Path.Combine(".", ZlibHelper.DLL_NAME);
+        if (!File.Exists(zlibPath))
+        {
+            await ZlibHelper.DownloadDllAsync(zlibPath);
+        }
+
+        ZlibHelper.Initialize(zlibPath);
     }
 
     public static List<ConfigObj>? LoadConfigFile(string path)

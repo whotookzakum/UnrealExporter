@@ -36,9 +36,9 @@ When listing an export file path, specify the desired output type at the end, su
 
 ### Manual setup (recommended)
 1. Download and install .NET SDK 8.0
-2. Clone the repo, i.e. `git clone https://github.com/whotookzakum/UnrealExporter`
-3. Configure `config.json` (see Config Options below)
-4. Open terminal and execute `dotnet run`
+2. Clone the repo including all submodules, i.e. `git clone https://github.com/whotookzakum/UnrealExporter --recursive`
+3. Configure `/configs/config.json` (see Config Options below)
+4. Open terminal and execute `dotnet run --project UnrealExporter`
 
 If you wish to build the project as a executable binary, use the following command:
 
@@ -47,7 +47,7 @@ dotnet publish -c Release --self-contained true -p:PublishSingleFile=true -p:Deb
 ```
 
 ## [Config Options](#config-options)
-Configure the `config.json` file in the `/configs` folder based on the game(s) you wish to export from. 
+Configure the `config.json` file in the `/configs` folder based on the game(s) you wish to export from. Config files must be an array at the top level.
 
 > [!TIP]
 > You can add multiple objects to export from different games, or different files from the same game. For different games, I recommend using [multiple configs](#multiple-configs) so you don't have to edit the same config file when you want to change games.
@@ -81,11 +81,13 @@ Create multiple JSONs in the `configs` folder, naming them something easy for yo
 
 | Command                        | Selected configs                                                    |
 |--------------------------------|---------------------------------------------------------------------|
-| `dotnet run`                   | `config.json`                                                       |
-| `dotnet run all`               | Every JSON directly in the `/configs` folder                        |
-| `dotnet run blue-protocol tof` | `blue-protocol.json`, `tof.json`                                    |
-| `dotnet run --list`            | Lists all configs found in the `/configs` folder                    |
-| `dotnet run --list bp tof`     | Lists all configs, with `bp.json` and `tof.json` checked by default |
+| `dotnet run --project UnrealExporter`                   | `config.json`                                                       |
+| `dotnet run --project UnrealExporter all`               | Every JSON directly in the `/configs` folder                        |
+| `dotnet run --project UnrealExporter blue-protocol tof` | `blue-protocol.json`, `tof.json`                                    |
+| `dotnet run --project UnrealExporter --list`            | Lists all configs found in the `/configs` folder                    |
+| `dotnet run --project UnrealExporter --list bp tof`     | Lists all configs, with `bp.json` and `tof.json` checked by default |
+
+<!-- `--project UnrealExporter` can be omitted if cd into the project -->
 
 #### [Config List](#config-list)
 If you pass the config list flag `--list`, the program will prompt you to select the configs you wish to use, listing the `gameTitle` for each object in the config. **This is enabled by default in the binary executable** unless an argument is passed.
